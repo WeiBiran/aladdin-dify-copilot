@@ -1,0 +1,9 @@
+node_modules/
+dist/
+runtime/
+artifacts/
+coverage/
+*.vsix
+.env*
+.dify-copilot-local/
+.DS_Store

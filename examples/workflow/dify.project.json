@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "example-workflow",
+  "name": "Copilot workflow smoke",
+  "mode": "workflow",
+  "requirement": "保持示例的输入回显行为。用于验证导入、测试和发布接口。",
+  "allowSideEffects": false
+}

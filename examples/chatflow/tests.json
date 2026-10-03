@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "name": "多轮草稿接口",
+      "inputs": {
+        "input": "sample"
+      },
+      "turns": [
+        {
+          "query": "first marker",
+          "assertions": [
+            {
+              "op": "equals",
+              "path": "answer",
+              "value": "first marker"
+            }
+          ]
+        },
+        {
+          "query": "second marker"
+        }
+      ],
+      "assertions": [
+        {
+          "op": "equals",
+          "path": "answer",
+          "value": "second marker"
+        }
+      ]
+    },
+    {
+      "name": "独立案例",
+      "inputs": {
+        "input": "isolated"
+      },
+      "query": "independent marker",
+      "assertions": [
+        {
+          "op": "equals",
+          "path": "answer",
+          "value": "independent marker"
+        }
+      ]
+    }
+  ]
+}
