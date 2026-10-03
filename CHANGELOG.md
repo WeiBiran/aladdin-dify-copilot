@@ -2,6 +2,12 @@
 
 [English](CHANGELOG.md) | [简体中文](CHANGELOG.zh-CN.md)
 
+## 0.5.0-beta.2 — Streaming fix
+
+- Keep the event stream open when a large DSL preview or chat snapshot temporarily fills the HTTP buffer. Disconnect only when a slow client accumulates over 4 MB of buffered data.
+- Add a 200 KB preview/report regression test so the following review remains available on the same stream.
+- Retain beta.1 as a historical tag; GitHub startup and download instructions now point to beta.2.
+
 ## 0.5.0-beta.1 — Browser application
 
 - Replace the VS Code host with an npm CLI and browser Chat/Settings interface.

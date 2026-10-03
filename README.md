@@ -4,7 +4,7 @@
 
 **Wei Biran's FDE delivery toolkit for Dify.** Describe a business task, build a Workflow or Chatflow with an OpenCode agent, and verify its candidate against a fixed test baseline. Run it locally with npm and use it in your browser.
 
-**Beta · 0.5.0-beta.1.** [Report an issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose) or fork the repository and send a pull request. Live business acceptance is still open; read the [verification status](docs/compatibility.md) before relying on a deployment.
+**Beta · 0.5.0-beta.2.** [Report an issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose) or fork the repository and send a pull request. Live business acceptance is still open; read the [verification status](docs/compatibility.md) before relying on a deployment.
 
 ## Start with one command
 
@@ -19,12 +19,12 @@ The first run installs the dependencies, including the official OpenCode runtime
 To select a specific project and release:
 
 ```sh
-npx --yes github:WeiBiran/aladdin-dify-copilot#v0.5.0-beta.1 ./customer-project
+npx --yes github:WeiBiran/aladdin-dify-copilot#v0.5.0-beta.2 ./customer-project
 ```
 
 The directory must already exist; the browser's folder picker can also create and select a project. Use `--port 0` to choose a free port, `--no-open` to print the link without opening a browser, or `--help` for all options. The default port is `8787`. If it is occupied, choose another port.
 
-This release is distributed through GitHub, **not the npm registry**. The short command `npx aladdin-dify` is not available. The repository includes compiled launch files, so GitHub installation does not require a local build. [Release downloads](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.5.0-beta.1) include the npm tarball, source archive, and SHA-256 checksums.
+This release is distributed through GitHub, **not the npm registry**. The short command `npx aladdin-dify` is not available. The repository includes compiled launch files, so GitHub installation does not require a local build. [Release downloads](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.5.0-beta.2) include the npm tarball, source archive, and SHA-256 checksums.
 
 ## The problem it solves
 

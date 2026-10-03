@@ -3695,9 +3695,11 @@ async function startWebApplication(options) {
   function emit(event) {
     const message = "data: " + JSON.stringify(event) + "\n\n";
     for (const stream of streams) {
-      if (stream.destroyed || !stream.write(message)) {
-        stream.end();
+      if (stream.destroyed || stream.writableLength > 4 * 1024 * 1024) {
+        stream.destroy();
         streams.delete(stream);
+      } else {
+        stream.write(message);
       }
     }
   }

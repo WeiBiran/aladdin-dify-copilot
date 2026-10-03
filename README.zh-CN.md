@@ -4,7 +4,7 @@
 
 **未必然的 Dify FDE 交付工具。** 从业务需求出发，让 OpenCode Agent 构建 Workflow 或 Chatflow，再按固定测试基线验证候选版本。用 npm 在本机启动，在浏览器里使用。
 
-**Beta · 0.5.0-beta.1。** 遇到问题欢迎[提 Issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose)，也可以 Fork 后提交 PR。真实业务验收仍未完成，使用前请看[验证状态](docs/compatibility.zh-CN.md)。
+**Beta · 0.5.0-beta.2。** 遇到问题欢迎[提 Issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose)，也可以 Fork 后提交 PR。真实业务验收仍未完成，使用前请看[验证状态](docs/compatibility.zh-CN.md)。
 
 ## 一条命令启动
 
@@ -19,12 +19,12 @@ npx --yes github:WeiBiran/aladdin-dify-copilot
 指定项目和固定版本：
 
 ```sh
-npx --yes github:WeiBiran/aladdin-dify-copilot#v0.5.0-beta.1 ./customer-project
+npx --yes github:WeiBiran/aladdin-dify-copilot#v0.5.0-beta.2 ./customer-project
 ```
 
 命令中的目录需要已经存在，也可以在网页的目录选择器里创建并选择项目。`--port 0` 自动选择空闲端口，`--no-open` 只打印链接，`--help` 查看全部参数。默认端口为 `8787`，被占用时请换一个端口。
 
-本版通过 GitHub 分发，**没有发布到 npm 仓库**，因此暂时不能使用 `npx aladdin-dify`。仓库附带编译好的启动文件，用户安装时不用自己构建。[Beta Release](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.5.0-beta.1) 提供 npm 安装包、源码压缩包和 SHA-256 校验文件。
+本版通过 GitHub 分发，**没有发布到 npm 仓库**，因此暂时不能使用 `npx aladdin-dify`。仓库附带编译好的启动文件，用户安装时不用自己构建。[Beta Release](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.5.0-beta.2) 提供 npm 安装包、源码压缩包和 SHA-256 校验文件。
 
 ## 我们要解决什么问题
 

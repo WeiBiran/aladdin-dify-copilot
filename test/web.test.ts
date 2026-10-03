@@ -66,19 +66,35 @@ describe('local browser application', () => {
       const project = await realpath(f.project);
       const privateRoot = path.join(f.root, 'private', 'projects', digest(project));
       await mkdir(privateRoot, { recursive: true });
-      await writeFile(path.join(project, 'workflow.yml'), 'app: {name: Candidate}');
+      await writeFile(
+        path.join(project, 'workflow.yml'),
+        'app: {name: Candidate}\n# ' + 'x'.repeat(200000),
+      );
       await writeFile(path.join(privateRoot, 'report.json'), '{"passed":true}');
       const stream = await fetch(f.app.origin + '/api/events', {
         headers: { cookie: f.cookie },
         signal: controller.signal,
       });
       const reader = stream.body!.getReader();
-      await reader.read();
+      let buffered = '';
+      const decoder = new TextDecoder();
+      async function nextEvent() {
+        while (!buffered.includes('\n\n')) {
+          const chunk = await reader.read();
+          if (chunk.done) throw new Error('Event stream closed during review');
+          buffered += decoder.decode(chunk.value, { stream: true });
+        }
+        const boundary = buffered.indexOf('\n\n');
+        const event = buffered.slice(0, boundary);
+        buffered = buffered.slice(boundary + 2);
+        return event;
+      }
+      await nextEvent();
       expect((await f.command('openDsl')).status).toBe(200);
-      const dsl = new TextDecoder().decode((await reader.read()).value);
+      const dsl = await nextEvent();
       expect(dsl).toContain('Candidate');
       expect((await f.command('openReport')).status).toBe(200);
-      const report = new TextDecoder().decode((await reader.read()).value);
+      const report = await nextEvent();
       expect(report).toContain('report.json');
       if (process.platform !== 'win32') {
         await rm(path.join(project, 'workflow.yml'));

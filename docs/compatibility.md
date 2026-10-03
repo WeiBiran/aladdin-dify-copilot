@@ -6,7 +6,7 @@ This Beta distinguishes live evidence from fixtures. Tests for one interface do 
 
 | Component               | Version / platform                 | Evidence and limits                                                                                                                                                                                                            |
 | ----------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Browser application     | 0.5.0-beta.1, macOS ARM64, Node 22 | Real authenticated HTTP server and browser Chat/Settings, English/Chinese switching, folder picker; no configured live Dify business loop                                                                                      |
+| Browser application     | 0.5.0-beta.2, macOS ARM64, Node 22 | Real authenticated HTTP server and browser Chat/Settings, English/Chinese switching, folder picker; no configured live Dify business loop                                                                                      |
 | npm package             | GitHub distribution                | Isolated tarball installation with scripts disabled, native runtime resolution, browser assets, and public API checks; release startup also checked from GitHub                                                                |
 | Credential store        | macOS Keychain                     | Native set/get/delete test; Windows/Linux store behavior still needs local acceptance                                                                                                                                          |
 | OpenCode CLI + SDK      | 1.18.34                            | Native macOS ARM64, Windows x64, and Linux x64 processes with actual SDK/MCP and local compatible/DeepSeek fixtures; no live model-account test                                                                                |
@@ -28,4 +28,4 @@ On 2026-10-03, a self-hosted instance displayed version 1.14.2 in its account me
 
 These checks do not establish conversation-variable behavior, clarification, real-tool business tasks, or compatibility of every node. Browser and application HTTP acceptance are recorded separately. The five cases in [acceptance.md](acceptance.md) remain open. Private reports are not published.
 
-The cross-platform CI evidence above covers code commit `d570d86`; subsequent release documentation changes do not change its runtime. Local checks passed 55 automated tests plus two native-engine fixtures.
+The linked cross-platform evidence covers the browser application and harness at `d570d86`. Beta.2 additionally fixes large-event backpressure and includes a regression test. Local checks passed 55 automated tests plus two native-engine fixtures.
