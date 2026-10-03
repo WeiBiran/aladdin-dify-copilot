@@ -4,7 +4,8 @@ import { existsSync } from 'node:fs';
 
 export function runtimePath(): string {
   const require = createRequire(import.meta.url);
-  const name = `opencode-${process.platform}-${process.arch}`;
+  const platform = process.platform === 'win32' ? 'windows' : process.platform;
+  const name = `opencode-${platform}-${process.arch}`;
   try {
     const root = path.dirname(require.resolve(name + '/package.json'));
     const binary = path.join(

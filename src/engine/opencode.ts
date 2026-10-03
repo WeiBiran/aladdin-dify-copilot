@@ -1,3 +1,4 @@
+import { Agent } from 'undici';
 import { spawn, execFile } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -19,6 +20,13 @@ export class OpenCodeEngine implements AgentEngine {
   private client?: OpencodeClient;
   private eventAbort = new AbortController();
   private password = randomBytes(24).toString('hex');
+  // OpenCode --port 0 prefers 4096. A restarted process can reuse that address.
+  // Give each engine its own pool so it cannot inherit a previous process's sockets.
+  private dispatcher = new Agent({ connections: 4, headersTimeout: 0, bodyTimeout: 0 });
+  private fetch(input: string | Request, init?: RequestInit) {
+    const options: RequestInit & { dispatcher: Agent } = { ...init, dispatcher: this.dispatcher };
+    return fetch(input, options);
+  }
   constructor(
     private options: {
       binary: string;
@@ -139,6 +147,8 @@ export class OpenCodeEngine implements AgentEngine {
     });
     this.client = createOpencodeClient({
       baseUrl: url,
+      directory,
+      fetch: (request) => this.fetch(request),
       headers: {
         Authorization: 'Basic ' + Buffer.from('opencode:' + this.password).toString('base64'),
       },
@@ -149,7 +159,7 @@ export class OpenCodeEngine implements AgentEngine {
     let ready = false;
     while (Date.now() < readinessDeadline && child.exitCode === null) {
       try {
-        const response = await fetch(url + '/global/health', {
+        const response = await this.fetch(url + '/global/health', {
           headers: {
             Authorization: 'Basic ' + Buffer.from('opencode:' + this.password).toString('base64'),
           },
@@ -252,6 +262,7 @@ export class OpenCodeEngine implements AgentEngine {
   async close() {
     this.eventAbort.abort();
     await this.cancel();
+    await this.dispatcher.destroy();
     if (this.child && !this.child.killed) {
       this.child.kill();
       await sleep(200);

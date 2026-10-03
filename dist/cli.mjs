@@ -2595,6 +2595,7 @@ var DifyBridge = class {
 };
 
 // src/engine/opencode.ts
+import { Agent } from "undici";
 import { spawn, execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { promises as fs3 } from "node:fs";
@@ -2615,6 +2616,13 @@ var OpenCodeEngine = class {
   client;
   eventAbort = new AbortController();
   password = randomBytes2(24).toString("hex");
+  // OpenCode --port 0 prefers 4096. A restarted process can reuse that address.
+  // Give each engine its own pool so it cannot inherit a previous process's sockets.
+  dispatcher = new Agent({ connections: 4, headersTimeout: 0, bodyTimeout: 0 });
+  fetch(input, init) {
+    const options = { ...init, dispatcher: this.dispatcher };
+    return fetch(input, options);
+  }
   async start() {
     const { binary, directory, model, apiKey, mcpUrl, mcpToken } = this.options;
     const version = (await execute(binary, ["--version"], { timeout: 15e3 })).stdout.trim();
@@ -2715,6 +2723,8 @@ var OpenCodeEngine = class {
     });
     this.client = createOpencodeClient({
       baseUrl: url2,
+      directory,
+      fetch: (request) => this.fetch(request),
       headers: {
         Authorization: "Basic " + Buffer.from("opencode:" + this.password).toString("base64")
       }
@@ -2723,7 +2733,7 @@ var OpenCodeEngine = class {
     let ready = false;
     while (Date.now() < readinessDeadline && child.exitCode === null) {
       try {
-        const response = await fetch(url2 + "/global/health", {
+        const response = await this.fetch(url2 + "/global/health", {
           headers: {
             Authorization: "Basic " + Buffer.from("opencode:" + this.password).toString("base64")
           },
@@ -2821,6 +2831,7 @@ var OpenCodeEngine = class {
   async close() {
     this.eventAbort.abort();
     await this.cancel();
+    await this.dispatcher.destroy();
     if (this.child && !this.child.killed) {
       this.child.kill();
       await sleep(200);
@@ -3954,7 +3965,8 @@ import path7 from "node:path";
 import { existsSync } from "node:fs";
 function runtimePath() {
   const require2 = createRequire(import.meta.url);
-  const name = `opencode-${process.platform}-${process.arch}`;
+  const platform = process.platform === "win32" ? "windows" : process.platform;
+  const name = `opencode-${platform}-${process.arch}`;
   try {
     const root = path7.dirname(require2.resolve(name + "/package.json"));
     const binary = path7.join(

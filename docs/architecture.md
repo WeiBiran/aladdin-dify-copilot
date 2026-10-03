@@ -51,6 +51,8 @@ The server binds exclusively to `127.0.0.1`. A random launch ticket expires afte
 
 A nonce CSP permits only the bundled scripts and styles; frames and arbitrary navigation content are not embedded. The UI's Markdown subset and file previews use text nodes, never model-generated HTML. Fixed command names and Zod forms prevent arbitrary shell/file operations. Folder listing and selection require an explicit authenticated action. Preview reads are limited to the current project's or private storage's canonical paths.
 
+Each OpenCode engine owns and destroys its HTTP connection pool. The pinned [server implementation](https://github.com/anomalyco/opencode/blob/v1.18.34/packages/opencode/src/server/server.ts) prefers port 4096 even when passed `--port 0`; reused sockets must not cross a process restart. Session creation and other writes are not retried.
+
 The application issues only public configuration and credential-presence flags to the browser. Password/key drafts remain in page memory and are cleared after saving. Chat drafts use sessionStorage but do not include credentials. Language switching reloads pages. Browser language is the default; English and Simplified Chinese overrides are persisted. User and model text retain their original language.
 
 Confirmations use single-use IDs and a ten-minute timeout. Review dialogs show DSL comparisons and reports before original-app promotion. Declining, expiry, and service shutdown resolve to denial. SIGINT/SIGTERM closes the application service, stops known Dify runs and the engine, flushes journals, and closes HTTP streams. Unknown remote writes still require reconciliation.

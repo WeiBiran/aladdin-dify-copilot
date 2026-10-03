@@ -9,7 +9,7 @@
 - Add authenticated loopback HTTP/SSE, a one-use launch ticket, host/origin validation, browser folder selection, file comparison, reports, and confirmation dialogs.
 - Store credentials in the native OS keyring; retain private settings, journals, capability caches, and run evidence outside project files.
 - Reuse the Dify adapters, real tool discovery, native DSL validation, frozen tests, repair controller, recovery, and publication gates.
-- Check OpenCode health before session creation; never replay writes as a startup retry.
+- Check OpenCode health before session creation and isolate each process's HTTP pool; never replay writes as a startup retry.
 - Provide aligned English/Chinese documentation, npm-package installation checks, native-engine fixtures, and a three-platform CI matrix.
 - Full live Dify business acceptance and LLM-as-judge scoring remain open. The abandoned desktop prototype was not released; this version provides no VSIX or native desktop installer.
 
