@@ -1,8 +1,8 @@
 # Third-party license notices
 
-This project uses MIT. The following notices cover bundled production dependencies. The official OpenCode native runtime uses its upstream MIT license, preserved in runtime/LICENSE.opencode. Node templates follow pinned Dify interfaces and default structures; they do not include the Dify server implementation.
+This project uses MIT. The following notices cover installed production dependencies. OpenCode and its native platform packages use their upstream MIT license and are installed through npm; their license files stay in those packages. Node templates follow pinned Dify interfaces and default structures; they do not include the Dify server implementation.
 
-本项目采用 MIT。以下保留打包依赖的许可；OpenCode 原生运行时完整许可另见 runtime/LICENSE.opencode。节点模板根据固定版本接口整理，不包含 Dify 服务端实现。
+本项目采用 MIT。以下保留生产依赖许可；OpenCode 和原生平台包通过 npm 安装，完整 MIT 许可保留在各自包中。节点模板根据固定版本接口整理，不包含 Dify 服务端实现。
 
 ## @modelcontextprotocol/sdk@1.32.0
 
@@ -12,6 +12,34 @@ License: MIT
 MIT License
 
 Copyright (c) 2024 Anthropic, PBC
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## @napi-rs/keyring@2.1.0
+
+License: MIT
+
+```text
+MIT License
+
+Copyright (c) 2020 N-API for Rust
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -74,6 +102,34 @@ License: MIT
 The MIT License (MIT)
 
 Copyright (c) 2015-2021 Evgeny Poberezkin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## opencode-ai@1.18.34
+
+License: MIT
+
+```text
+MIT License
+
+Copyright (c) 2025 opencode
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -618,6 +674,12 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 ```
 
+## @napi-rs/keyring-darwin-arm64@2.1.0
+
+License: MIT
+
+Upstream package: https://www.npmjs.com/package/@napi-rs/keyring-darwin-arm64
+
 ## fast-deep-equal@3.1.3
 
 License: MIT
@@ -738,6 +800,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
+
+## opencode-darwin-arm64@1.18.34
+
+License: undefined
+
+Upstream package: https://www.npmjs.com/package/opencode-darwin-arm64
 
 ## tldts@6.1.86
 

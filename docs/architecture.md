@@ -1,74 +1,82 @@
-# Architecture and extension interfaces
+# Architecture
 
-[English](architecture.md) · [简体中文](architecture.zh-CN.md)
+[English](architecture.md) | [简体中文](architecture.zh-CN.md)
 
-VS Code owns project files, credentials, and task lifecycle. OpenCode owns model calls, context, and tool execution. The host enforces frozen tests, budgets, and publication conditions rather than implementing a second general-purpose planner.
+The local Node.js service owns files, credentials, and task lifecycle. OpenCode owns model calls, context, and tool execution. The application enforces frozen tests, budgets, and publication conditions rather than implementing another general-purpose planner.
 
 ```mermaid
 flowchart LR
-    UI[VS Code] --> E[OpenCode SDK / subprocess]
+    B[Browser Chat / Settings] --> W[Authenticated loopback HTTP service]
+    W --> S[Application service]
+    S --> E[OpenCode SDK / subprocess]
     E --> M[Restricted MCP bridge]
     M --> C[Capability index / detailed definitions]
     M --> A[Dify version adapter]
     A --> D[Dify Console API]
-    M --> P[Requirements / DSL / tests]
-    P --> V[Deterministic validation]
-    V --> T[Dify draft tests]
-    T --> E
-    T --> G[Digest / dependency / conflict checks]
+    M --> P[Requirements / DSL / fixed tests]
+    P --> V[Validation and draft tests]
+    V --> E
+    V --> G[Digest / dependency / conflict gates]
     G --> D
 ```
 
 ## Modules
 
-| Path                                   | Responsibility                                                                                       |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `src/extension.ts`, `src/ui/`          | Settings, chat, input validation, commands, and change confirmation                                  |
-| `src/engine/opencode.ts`               | Pinned CLI/SDK, isolated server, streamed events, session recovery, and cancellation                 |
-| `src/engine/bridge.ts`                 | Loopback-only MCP, random bearer authentication, rejected browser origins, and restricted operations |
-| `src/dify/transport.ts`                | Cookies, CSRF, session persistence, one refresh after a 401, and reverse-proxy paths                 |
-| `src/dify/capabilities.ts`             | Tool identities, allowlisted parameters, pagination, status, and detailed discovery                  |
-| `src/dify/client.ts`, `sse.ts`         | Console imports/exports, draft runs, SSE parsing, cancellation, and publication                      |
-| `src/core/controller.ts`               | Frozen tests, persisted write intent, repair limits, digest gates, and promotion conflict checks     |
-| `src/core/validation.ts`               | YAML, graph, references, parameters, nested JSON Schema validation, and dependencies                 |
-| `src/core/node-templates.ts`           | Node structures derived from pinned upstream code; templates do not certify compatibility            |
-| `src/core/project.ts`, `types.ts`      | Shared project files, private storage, and data contracts                                            |
-| `src/core/i18n.ts`, `src/ui/locale.ts` | English/Chinese interface messages and locale selection                                              |
+| Path                                          | Responsibility                                                                             |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `src/web/cli.ts`, `runtime.ts`                | CLI arguments, browser launch, signal cleanup, native runtime discovery                    |
+| `src/web/server.ts`, `page.ts`, `browser.ts`  | Authenticated HTTP/SSE, browser transport, folder selection, file reviews, confirmations   |
+| `src/app/service.ts`, `host.ts`               | Connection profiles, capability synchronization, conversation continuation, task execution |
+| `src/app/storage.ts`                          | Atomic private JSON and native OS credential storage                                       |
+| `src/ui/`                                     | Chat timeline, Settings forms, input validation, fixed command allowlist                   |
+| `src/engine/opencode.ts`                      | CLI/SDK 1.18.34, isolated server, streamed events, session recovery, cancellation          |
+| `src/engine/bridge.ts`                        | Loopback-only MCP, random bearer token, rejected browser origins, restricted operations    |
+| `src/dify/transport.ts`                       | Cookies, CSRF, saved sessions, one refresh after a 401, reverse-proxy paths                |
+| `src/dify/capabilities.ts`                    | Tool identity, allowlisted parameters, pagination, status, detailed discovery              |
+| `src/dify/client.ts`, `sse.ts`, `versions.ts` | Version contracts, imports/exports, draft runs, SSE, cancellation, publication             |
+| `src/core/controller.ts`                      | Frozen tests, write intent, repair limits, digests, promotion conflict checks              |
+| `src/core/validation.ts`, `node-templates.ts` | Native YAML, graph/references, parameters, schemas, versioned node structures              |
+| `src/core/project.ts`, `chat.ts`, `types.ts`  | Project files, private journal/storage, public data contracts                              |
+| `src/core/i18n.ts`                            | English/Chinese interface messages and language selection                                  |
 
-## Settings and chat
+## GitHub npm distribution
 
-Settings open in a single editor tab. Chat uses a bottom composer and conversation timeline with requirements, agent replies, tool calls, task phases, and results. Its default container is the Secondary Side Bar (`aladdinDifyRight`, view `aladdinDify.taskPanel`). These IDs avoid old left-sidebar layout caches. A status-bar shortcut and commands reopen the panel. Automatic startup display can be disabled in Settings. Secondary-side-bar placement uses the [stable VS Code 1.106 contribution API](https://code.visualstudio.com/updates/v1_106#_view-containers-in-secondary-side-bar).
+The package has one executable, `aladdin-dify`, and committed compiled files under `dist/`. There are no `build`, `prepare`, `prepack`, or installation lifecycle scripts. npm's Git fetcher treats those script names as a reason to install development dependencies in a temporary clone; avoiding them lets users run the compiled program directly. Developers use `npm run compile`; `npm run package` compiles and packs explicitly. CI checks that committed compiled files match the source.
 
-Webviews communicate through a fixed command allowlist. The host validates messages with Zod and performs network calls; browser scripts do not hold Dify clients. A nonce CSP and local resource roots limit loaded content. Responses include public configuration and credential-presence flags, never passwords, cookies, API keys, or secret references. Password/key form drafts stay in page memory. Changing provider or URL does not reuse a key from another connection.
+`opencode-ai` is a pinned optional dependency that installs the appropriate official platform package. The CLI resolves that native package directly, so it also works when npm installation scripts are disabled. If optional dependencies are omitted, startup reports the missing runtime. It does not download an arbitrary executable at task time or use a global CLI implicitly.
 
-The interface follows the VS Code language by default, with English and Simplified Chinese overrides. Changing it rebuilds both webviews and clears unsaved password/key inputs. User messages, agent responses, project names, tool definitions, and external errors keep their original language. Command-palette localization follows the VS Code display language.
+## Local HTTP boundary
 
-Settings work without an open folder. Starting a task initializes the project and writes requirements and acceptance criteria to `dify.project.json` and `requirements.md`; users do not need to edit Markdown to get started.
+The server binds exclusively to `127.0.0.1`. A random launch ticket expires after five minutes and is consumed once. It becomes a per-port HttpOnly/SameSite=Strict session cookie; a redirect removes the ticket from the address bar. All pages, assets, state, SSE, and APIs require the session. Host validation limits DNS rebinding; mutations require a matching Origin and JSON body. CORS is not enabled. Bodies, previews, and SSE backpressure are bounded.
 
-`sendChat` uses the existing task controller. The first message starts a task; follow-ups continue the same OpenCode session and test application. `ChatJournal` merges streamed events and final replies by session/part ID, filters internal user prompts and reasoning, and keeps limited tool metadata. The current conversation is saved atomically in private extension storage. New conversations archive previous records without deleting project files. Follow-ups retain the frozen baseline and target, reset repair rounds, and retain accumulated token usage. A webview reports readiness only after DOM initialization.
+A nonce CSP permits only the bundled scripts and styles; frames and arbitrary navigation content are not embedded. The UI's Markdown subset and file previews use text nodes, never model-generated HTML. Fixed command names and Zod forms prevent arbitrary shell/file operations. Folder listing and selection require an explicit authenticated action. Preview reads are limited to the current project's or private storage's canonical paths.
 
-## Authentication and versions
+The application issues only public configuration and credential-presence flags to the browser. Password/key drafts remain in page memory and are cleared after saving. Chat drafts use sessionStorage but do not include credentials. Language switching reloads pages. Browser language is the default; English and Simplified Chinese overrides are persisted. User and model text retain their original language.
 
-Adapters target Dify 1.14.2 / DSL 0.6.0 and Dify 1.17.1 / DSL 0.7.0. Other versions need their own adapter and tests. A `ConnectionProfile` contains no plaintext password. Both pinned versions encode UTF-8 passwords as Base64 according to their upstream login implementation; Base64 is not encryption. HTTPS provides transport protection. Console authentication uses cookies and `X-CSRF-Token`, not the application Service API key.
+Confirmations use single-use IDs and a ten-minute timeout. Review dialogs show DSL comparisons and reports before original-app promotion. Declining, expiry, and service shutdown resolve to denial. SIGINT/SIGTERM closes the application service, stops known Dify runs and the engine, flushes journals, and closes HTTP streams. Unknown remote writes still require reconciliation.
 
-A 401 permits one refresh. Network errors do not automatically replay writes. Import, publication, and promotion intent is persisted before requests. Recovery checks remote state; ambiguous outcomes require attention. An ambiguous original-app update is not replayed. Draft updates submit the server hash so the server can reject a change occurring after the client's last conflict check.
+## Storage and project lifecycle
 
-Dify 1.14.2 requires the complete `environment_variables` list. Existing secrets use their original IDs and the upstream 20-asterisk mask, allowing the server to preserve their values. Dify 1.17.1 uses `environment_variable_patch` without secret values. Both submit the remote hash.
+`ApplicationHost` separates UI/storage operations from the delivery service. JSON files are written atomically with private directory/file modes. Keys, passwords, cookies, and tokens use native `@napi-rs/keyring` entries scoped by the data-directory digest. There is no plaintext fallback. Linux Secret Service/kernel storage availability and persistence depend on the user's environment.
 
-## Capability visibility
+The default private root is `~/.aladdin-dify`; projects contain requirements, DSL, and tests. Project settings, capability caches, runs, and chat records are scoped by canonical project path, instance/account, and workspace. Only one mutation task may run at a time. Switching projects is blocked while a task or settings mutation is active. A task creates its requirement files from the user's chat input; no manual Markdown configuration is required.
 
-The index covers built-in/plugin, custom API, workflow, and MCP tools visible in the selected workspace. Identity is `[kind, providerId, toolName]`; display names are not keys. Detailed definitions retain required/default values, enums, form types, nested JSON schemas, output schemas, and plugin references. Unknown output remains unknown. Missing dynamic options cannot be guessed.
+`sendChat` starts a task on its first message. Follow-ups keep the OpenCode session, original/test mapping, and frozen baseline, while resetting repair rounds and retaining token usage. `ChatJournal` merges events and replies by session/part IDs, filters internal prompts and reasoning, and keeps restricted tool metadata. New conversations archive old records without deleting project files. There is no history browser yet.
 
-Credential fields are excluded through allowlists. Tool descriptions are external data, not plugin policy. MCP does not expose arbitrary shell commands, arbitrary file access, or direct original-app overwrites. A changed capability digest invalidates previous test evidence even if YAML still passes validation.
+## Dify authentication and versions
 
-## Tests and recovery
+Adapters target 1.14.2 / DSL 0.6.0 and 1.17.1 / DSL 0.7.0. Other versions need separate contracts and tests. Both pinned login interfaces encode UTF-8 passwords as Base64; that is not encryption. HTTPS protects transport. Console authentication uses cookies and `X-CSRF-Token`; app Service API keys do not grant console editing rights.
 
-The host freezes the test digest after the agent's first candidate and test suite. Failures return real nodes, outputs, and assertions to the same engine session. Defaults allow an initial generation and at most five repairs. An unchanged candidate and repeated error across two rounds stop the loop.
+A 401 permits one session refresh. Network errors do not automatically replay writes. Import, publication, and promotion intent is persisted before requests. Recovery queries remote state; ambiguity requires attention. Original-app updates submit the server hash so a concurrent change after the client's comparison can still be rejected.
 
-Each Workflow case runs independently. Each Chatflow case gets its own conversation, restarted after a repair. The final turn must satisfy case-level assertions. SSE requires `workflow_finished`; successful Chatflow runs also require `message_end`. HTTP 200, a successful import, or valid YAML alone does not establish business correctness. Model-based semantic scoring is not implemented.
+1.14.2 requires the complete `environment_variables` list; original secret IDs and the upstream mask preserve existing values. 1.17.1 uses `environment_variable_patch` without secret values. Test copies cannot obtain exported secret values and may need manual configuration in Dify. Unsupported secret-node merges block promotion.
 
-Tests can write to external systems. A test application isolates the Dify definition, not business data. Unknown business writes cannot be assumed idempotent. Use the tool's test environment, idempotency keys, or manual reconciliation before resuming. This Beta has no cross-system transaction rollback.
+## Tool visibility and evaluation
 
-## Limits
+The index covers built-in/plugin, API, workflow, and Dify-connected MCP tools. Identity is `[kind, providerId, toolName]`, never a display name. Detailed definitions retain required/default values, enums, forms, nested JSON schemas, outputs, and plugin references. Unknown outputs or missing dynamic options cannot be invented. Allowlisted discovery fields exclude credentials; tool descriptions are external data, not application policy.
 
-Static validation cannot cover every runtime rule; real import and execution remain required. Node templates have not all passed live per-node tests. Exported secret environment-variable values are unavailable and must be configured separately in test copies. Original-app updates preserve existing values; unsupported secret-node merges block promotion. Missing credentials require user action, not DSL repairs. OpenCode/Dify upgrades require renewed adapter, native-engine, and business acceptance tests.
+The bridge exposes project operations, detailed capability queries, version rules, validation, imports, tests, and gated publication. Dify executes business tools using its own credentials. The agent has no arbitrary terminal or direct original-app overwrite operation. Used capability changes invalidate prior test evidence even when YAML still parses.
+
+The controller freezes the first candidate's test baseline, returns failure evidence to the same engine session, and allows at most five repairs by default. A repeated error with an unchanged candidate across two rounds stops retries. Workflow cases run independently; Chatflow cases each get a fresh conversation after a repair. SSE must reach `workflow_finished`, with `message_end` also required for a successful Chatflow. Valid YAML, import success, and HTTP 200 cannot replace business assertions. LLM-as-judge is not implemented.
+
+External business writes are not isolated by a test app or protected by cross-system rollback. Scope authorization, test environments, idempotency, and manual reconciliation remain necessary. Static/node fixture tests do not prove real per-node compatibility; see the verification matrix and live acceptance checklist.

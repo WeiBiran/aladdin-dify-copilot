@@ -360,7 +360,7 @@ export class TaskController {
         throw new ApiError(
           409,
           'ambiguous',
-          '上次原应用更新结果未知，请在 Dify 核对草稿与已发布版本。插件不会重复导入或发布。',
+          '上次原应用更新结果未知，请在 Dify 核对草稿与已发布版本。应用不会重复导入或发布。',
         );
       record.pendingPromotion = undefined;
       spec.originalDigest = digest(await this.client.exportApp(spec.originalAppId));

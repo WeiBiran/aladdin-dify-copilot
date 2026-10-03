@@ -1,4 +1,3 @@
-import * as vscode from 'vscode';
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
 import { randomUUID } from 'node:crypto';
@@ -9,18 +8,15 @@ import type {
   SecretStore,
   RunRecord,
   CapabilitySnapshot,
-} from './core/types';
-import { ProjectStore } from './core/project';
-import { ChatJournal } from './core/chat';
-import { translate, type LanguageSetting } from './core/i18n';
-import { interfaceLanguage } from './ui/locale';
-import { DifyTransport } from './dify/transport';
-import { DifyClient } from './dify/client';
-import { TaskController } from './core/controller';
-import { DifyBridge } from './engine/bridge';
-import { OpenCodeEngine } from './engine/opencode';
-import { Sidebar } from './ui/sidebar';
-import { SettingsPanel } from './ui/settings';
+} from '../core/types';
+import { ProjectStore } from '../core/project';
+import { ChatJournal } from '../core/chat';
+import { translate, type LanguageSetting } from '../core/i18n';
+import { DifyTransport } from '../dify/transport';
+import { DifyClient } from '../dify/client';
+import { TaskController } from '../core/controller';
+import { DifyBridge } from '../engine/bridge';
+import { OpenCodeEngine } from '../engine/opencode';
 import {
   connectionForm,
   modelForm,
@@ -28,18 +24,13 @@ import {
   limitForm,
   taskForm,
   type UiState,
-} from './ui/contracts';
-import { normalizeBaseUrl, digest, redact, object, throwIfAborted } from './core/util';
-let active: TaskController | undefined;
-let bridge: DifyBridge | undefined;
-export function activate(context: vscode.ExtensionContext) {
-  const output = vscode.window.createOutputChannel('Dify Copilot');
-  context.subscriptions.push(output);
-  const secrets: SecretStore = {
-    get: async (k) => context.secrets.get(k),
-    store: async (k, v) => context.secrets.store(k, v),
-    delete: async (k) => context.secrets.delete(k),
-  };
+} from '../ui/contracts';
+import { normalizeBaseUrl, digest, redact, object, throwIfAborted } from '../core/util';
+import type { ApplicationHost } from './host';
+export function createApplication(host: ApplicationHost) {
+  let active: TaskController | undefined;
+  let bridge: DifyBridge | undefined;
+  const secrets = host.secrets;
   const handlers: Record<string, (payload?: unknown) => Promise<unknown>> = {};
   let starting = false;
   let preparing: AbortController | undefined;
@@ -52,8 +43,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
     | undefined;
   const profile = () =>
-    context.workspaceState.get<ConnectionProfile>('connection') ??
-    context.globalState.get<ConnectionProfile>('defaultConnection');
+    host.projectState.get<ConnectionProfile>('connection') ??
+    host.globalState.get<ConnectionProfile>('defaultConnection');
   const invoke = async (name: string, payload?: unknown) => {
     if (!Object.hasOwn(handlers, name)) throw new Error('未知操作');
     try {
@@ -67,69 +58,47 @@ export function activate(context: vscode.ExtensionContext) {
             : String(e);
       const submitted = object(payload);
       const text = redact(raw, [String(submitted.password ?? ''), String(submitted.apiKey ?? '')]);
-      throw new Error(translate(text, interfaceLanguage()));
+      throw new Error(translate(text, host.locale()));
     }
   };
-  const sidebar = new Sidebar(context.extensionUri, invoke);
-  const settings = new SettingsPanel(context.extensionUri, invoke);
   const journals = new Map<string, Promise<ChatJournal>>();
   let runningChat: ChatJournal | undefined;
   let chatSaveTimer: ReturnType<typeof setTimeout> | undefined;
   async function journal() {
-    const key = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? 'no-folder';
+    const key = host.project()?.path ?? 'no-folder';
     if (!journals.has(key))
       journals.set(
         key,
-        new ChatJournal(
-          path.join(context.globalStorageUri.fsPath, 'chats', digest(key) + '.json'),
-        ).load(),
+        new ChatJournal(path.join(host.storagePath, 'chats', digest(key) + '.json')).load(),
       );
     return journals.get(key)!;
   }
   function showChat(chat: ChatJournal) {
-    sidebar.chat(chat.snapshot());
+    host.emit({ type: 'chat', chat: chat.snapshot() });
     if (chatSaveTimer) clearTimeout(chatSaveTimer);
     chatSaveTimer = setTimeout(() => {
-      void chat.flush().catch((e) => output.appendLine('聊天记录保存失败：' + redact(String(e))));
+      void chat.flush().catch((e) => host.log('Chat persistence failed: ' + redact(String(e))));
     }, 250);
   }
-  context.subscriptions.push({
-    dispose: () => {
-      if (chatSaveTimer) clearTimeout(chatSaveTimer);
-      for (const item of journals.values()) void item.then((chat) => chat.flush());
-    },
-  });
-  context.subscriptions.push(
-    settings,
-    vscode.window.registerWebviewViewProvider('aladdinDify.taskPanel', sidebar, {
-      webviewOptions: { retainContextWhenHidden: true },
-    }),
-  );
-  const taskShortcut = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  taskShortcut.text = '$(symbol-method) Dify';
-  taskShortcut.tooltip =
-    interfaceLanguage() === 'en' ? 'Open Dify Copilot chat' : '打开 Dify Copilot 右侧任务面板';
-  taskShortcut.command = 'aladdinDify.showTask';
-  taskShortcut.show();
-  context.subscriptions.push(taskShortcut);
   const log = (text: string) => {
-    sidebar.log(redact(text));
-    output.appendLine(redact(text));
+    host.log(redact(text));
   };
   const ensureIdle = () => {
     if (active || starting || changingSettings)
       throw new Error('当前任务或设置正在处理中，请稍后再操作。');
   };
   async function store() {
-    if (!vscode.workspace.isTrusted) throw new Error('请先信任工作区，才能连接 Dify 并运行 Agent');
-    const folder = vscode.workspace.workspaceFolders?.[0];
+    if (!(host.project()?.trusted ?? true))
+      throw new Error('请先信任工作区，才能连接 Dify 并运行 Agent');
+    const folder = host.project();
     if (!folder) throw new Error('请先选择一个项目目录');
-    const local = path.join(context.globalStorageUri.fsPath, 'projects', digest(folder.uri.fsPath));
+    const local = path.join(host.storagePath, 'projects', digest(folder.path));
     await fs.mkdir(local, { recursive: true, mode: 0o700 });
-    return new ProjectStore(folder.uri.fsPath, local);
+    return new ProjectStore(folder.path, local);
   }
   async function client() {
-    if (!vscode.workspace.isTrusted) throw new Error('请先信任工作区，才能连接 Dify 并运行 Agent');
+    if (!(host.project()?.trusted ?? true))
+      throw new Error('请先信任工作区，才能连接 Dify 并运行 Agent');
     const p = profile();
     if (!p) throw new Error('请先在设置页连接 Dify');
     const transport = new DifyTransport({ ...p }, secrets);
@@ -137,7 +106,7 @@ export function activate(context: vscode.ExtensionContext) {
     return new DifyClient(transport);
   }
   const limits = () => {
-    const c = vscode.workspace.getConfiguration('aladdinDify');
+    const c = host.config;
     return {
       maxRepairs: c.get<number>('maxRepairs', 5),
       timeoutMinutes: c.get<number>('taskTimeoutMinutes', 30),
@@ -146,18 +115,14 @@ export function activate(context: vscode.ExtensionContext) {
     };
   };
   const snapshotPath = (p: ConnectionProfile) =>
-    path.join(
-      context.globalStorageUri.fsPath,
-      'connections',
-      digest(p.id + '.' + p.workspaceId) + '.json',
-    );
+    path.join(host.storagePath, 'connections', digest(p.id + '.' + p.workspaceId) + '.json');
   async function saveSnapshot(snap: CapabilitySnapshot, p: ConnectionProfile) {
     const file = snapshotPath(p);
     await fs.mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
     const tmp = file + '.tmp';
     await fs.writeFile(tmp, JSON.stringify(snap), { mode: 0o600 });
     await fs.rename(tmp, file);
-    if (vscode.workspace.workspaceFolders?.length) await (await store()).snapshot(snap);
+    if (host.project()) await (await store()).snapshot(snap);
   }
   async function savedSnapshot(): Promise<CapabilitySnapshot | undefined> {
     const p = profile();
@@ -176,24 +141,22 @@ export function activate(context: vscode.ExtensionContext) {
   }
   async function getState(): Promise<UiState> {
     const p = profile(),
-      m = context.globalState.get<ModelProfile>('generationModel'),
+      m = host.globalState.get<ModelProfile>('generationModel'),
       snap = await savedSnapshot(),
-      folder = vscode.workspace.workspaceFolders?.[0];
-    const s = folder && vscode.workspace.isTrusted ? await store() : undefined;
+      folder = host.project();
+    const s = folder && (host.project()?.trusted ?? true) ? await store() : undefined;
     const spec = s ? await s.spec().catch(() => undefined) : undefined;
     const record = active?.record ?? (s ? await s.record() : undefined);
-    const runtime = context.globalState.get<{
+    const runtime = host.globalState.get<{
       connectionId: string;
       model: { provider: string; model: string };
     }>('runtimePreference');
     return {
       chat: (await journal()).snapshot(),
-      locale: interfaceLanguage(),
-      language: vscode.workspace
-        .getConfiguration('aladdinDify')
-        .get<LanguageSetting>('language', 'auto'),
+      locale: host.locale(),
+      language: host.config.get<LanguageSetting>('language', 'auto'),
       workspace: folder
-        ? { name: folder.name, path: folder.uri.fsPath, trusted: vscode.workspace.isTrusted }
+        ? { name: folder.name, path: folder.path, trusted: host.project()?.trusted ?? true }
         : undefined,
       connection: p
         ? {
@@ -214,12 +177,7 @@ export function activate(context: vscode.ExtensionContext) {
         : undefined,
       limits: {
         ...limits(),
-        opencodePath: vscode.workspace
-          .getConfiguration('aladdinDify')
-          .get<string>('opencodePath', ''),
-        showTaskOnStartup: vscode.workspace
-          .getConfiguration('aladdinDify')
-          .get<boolean>('showTaskOnStartup', true),
+        opencodePath: host.config.get<string>('opencodePath', ''),
       },
       runtimeModel: runtime?.connectionId === p?.id ? runtime?.model : undefined,
       runtimeModels: (snap?.models ?? []).filter(
@@ -260,8 +218,7 @@ export function activate(context: vscode.ExtensionContext) {
   }
   async function emitState() {
     const state = await getState();
-    sidebar.update(state);
-    settings.update(state);
+    host.emit({ type: 'state', state });
   }
   const notify = (record: RunRecord) => {
     const phases: Record<string, string> = {
@@ -276,9 +233,10 @@ export function activate(context: vscode.ExtensionContext) {
       cancelled: '已停止',
       'needs-input': '需要处理',
     };
-    sidebar.status(
-      `${phases[record.phase] ?? record.phase} · 第 ${record.round + 1} 轮 · 生成 ${record.generationTokens} / Dify ${record.difyTokens} tokens`,
-    );
+    host.emit({
+      type: 'activity',
+      status: `${phases[record.phase] ?? record.phase} · 第 ${record.round + 1} 轮 · 生成 ${record.generationTokens} / Dify ${record.difyTokens} tokens`,
+    });
     if (runningChat) {
       runningChat.progress(
         'run:' + record.id + ':' + record.round + ':' + record.phase,
@@ -292,18 +250,14 @@ export function activate(context: vscode.ExtensionContext) {
   handlers.saveLanguage = async (payload) => {
     ensureIdle();
     const language = z.enum(['auto', 'en', 'zh-CN']).parse(payload);
-    await vscode.workspace
-      .getConfiguration('aladdinDify')
-      .update('language', language, vscode.ConfigurationTarget.Global);
-    taskShortcut.tooltip =
-      interfaceLanguage() === 'en' ? 'Open Dify Copilot chat' : '打开 Dify Copilot 右侧任务面板';
+    await host.config.update('language', language, undefined);
     await emitState();
   };
   handlers.settings = async () => {
-    settings.open();
+    await host.showSettings();
   };
   handlers.showTask = async () => {
-    await vscode.commands.executeCommand('aladdinDify.taskPanel.focus');
+    await host.showChat();
     await emitState();
   };
   handlers.initialize = handlers.showTask;
@@ -311,14 +265,8 @@ export function activate(context: vscode.ExtensionContext) {
   handlers.configureModel = handlers.settings;
   handlers.selectFolder = async () => {
     ensureIdle();
-    const selected = await vscode.window.showOpenDialog({
-      canSelectFiles: false,
-      canSelectFolders: true,
-      canSelectMany: false,
-      openLabel: '打开 Dify 项目目录',
-    });
-    if (selected?.[0])
-      await vscode.commands.executeCommand('vscode.openFolder', selected[0], false);
+    await host.selectFolder();
+    await emitState();
   };
   async function finishConnection(id: string) {
     const pending = pendingConnection;
@@ -330,11 +278,8 @@ export function activate(context: vscode.ExtensionContext) {
     await pending.client.selectWorkspace(id);
     const snap = await pending.client.refresh();
     await secrets.store('dify.password.' + p.id, pending.password);
-    await context.globalState.update('defaultConnection', p);
-    await context.workspaceState.update(
-      'connection',
-      vscode.workspace.workspaceFolders?.length ? p : undefined,
-    );
+    await host.globalState.update('defaultConnection', p);
+    await host.projectState.update('connection', host.project() ? p : undefined);
     await saveSnapshot(snap, p);
     pendingConnection = undefined;
     log(
@@ -345,7 +290,7 @@ export function activate(context: vscode.ExtensionContext) {
   handlers.connectForm = async (payload) => {
     ensureIdle();
     const form = connectionForm.parse(payload);
-    if (!vscode.workspace.isTrusted) throw new Error('请先信任当前工作区');
+    if (!(host.project()?.trusted ?? true)) throw new Error('请先信任当前工作区');
     changingSettings = true;
     try {
       const old = profile(),
@@ -386,7 +331,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   };
   async function modelKey(form: { provider: string; baseUrl?: string; apiKey: string }) {
-    const old = context.globalState.get<ModelProfile>('generationModel');
+    const old = host.globalState.get<ModelProfile>('generationModel');
     const same = old?.provider === form.provider && old.baseUrl === form.baseUrl;
     const key = form.apiKey || (same ? await secrets.get(old!.apiKeyRef) : undefined);
     if (!key) throw new Error('请填写该供应商与地址对应的 API Key');
@@ -400,7 +345,7 @@ export function activate(context: vscode.ExtensionContext) {
       const key = await modelKey(f),
         ref = 'model.' + digest(f.provider + '|' + (f.baseUrl ?? ''));
       await secrets.store(ref, key);
-      await context.globalState.update('generationModel', {
+      await host.globalState.update('generationModel', {
         provider: f.provider,
         baseUrl: f.baseUrl,
         model: f.model,
@@ -450,7 +395,7 @@ export function activate(context: vscode.ExtensionContext) {
       )
     )
       throw new Error('该模型不在当前 Dify 的可用目录中，请刷新能力');
-    await context.globalState.update(
+    await host.globalState.update(
       'runtimePreference',
       model ? { connectionId: p.id, model } : undefined,
     );
@@ -459,17 +404,15 @@ export function activate(context: vscode.ExtensionContext) {
   handlers.saveLimits = async (payload) => {
     ensureIdle();
     const f = limitForm.parse(payload),
-      c = vscode.workspace.getConfiguration('aladdinDify');
+      c = host.config;
     const values = {
       maxRepairs: f.maxRepairs,
       taskTimeoutMinutes: f.timeoutMinutes,
       generationTokenBudget: f.generationTokenBudget,
       difyTokenBudget: f.difyTokenBudget,
       opencodePath: f.opencodePath,
-      showTaskOnStartup: f.showTaskOnStartup,
     };
-    for (const [key, value] of Object.entries(values))
-      await c.update(key, value, vscode.ConfigurationTarget.Global);
+    for (const [key, value] of Object.entries(values)) await c.update(key, value, undefined);
     await emitState();
   };
   handlers.sync = async () => {
@@ -527,7 +470,7 @@ export function activate(context: vscode.ExtensionContext) {
     const s = await store();
     let spec = await s.spec();
     const c = await client();
-    const model = context.globalState.get<ModelProfile>('generationModel');
+    const model = host.globalState.get<ModelProfile>('generationModel');
     if (!model) throw new Error('请先在设置页配置生成模型');
     const apiKey = await secrets.get(model.apiKeyRef);
     if (!apiKey) throw new Error('缺少模型 Key，请在设置页重新配置');
@@ -545,7 +488,7 @@ export function activate(context: vscode.ExtensionContext) {
         await s.backup('original', yaml);
         await s.saveDsl(yaml);
       } else spec.originalDigest = undefined;
-      const preference = context.globalState.get<{
+      const preference = host.globalState.get<{
         connectionId: string;
         model: { provider: string; model: string };
       }>('runtimePreference');
@@ -556,15 +499,14 @@ export function activate(context: vscode.ExtensionContext) {
     } else {
       const previous = await s.record();
       if (previous?.pendingTest) {
-        const decision = await vscode.window.showWarningMessage(
+        const decision = await host.confirm(
           translate(
             '上次 Dify 测试结果未知，可能已产生外部业务写入。请先核对 Dify 日志、测试数据和业务状态，再允许重新测试。',
-            interfaceLanguage(),
+            host.locale(),
           ),
-          { modal: true },
-          translate('已核对，允许继续测试', interfaceLanguage()),
+          translate('已核对，允许继续测试', host.locale()),
         );
-        if (decision !== translate('已核对，允许继续测试', interfaceLanguage())) return;
+        if (!decision) return;
         previous.pendingTest = false;
         await s.saveRecord(previous);
       }
@@ -592,16 +534,8 @@ export function activate(context: vscode.ExtensionContext) {
         log,
       );
       await bridge.start();
-      const configured = vscode.workspace
-        .getConfiguration('aladdinDify')
-        .get<string>('opencodePath');
-      const binary =
-        configured ||
-        path.join(
-          context.extensionPath,
-          'runtime',
-          process.platform === 'win32' ? 'opencode.exe' : 'opencode',
-        );
+      const configured = host.config.get<string>('opencodePath');
+      const binary = configured || host.runtimePath;
       const engine = new OpenCodeEngine({
         difyVersion: c.transport.profile.version,
         binary,
@@ -637,18 +571,7 @@ export function activate(context: vscode.ExtensionContext) {
         showChat(runningChat);
       }
       log(`已通过测试并发布测试应用：${c.url((await s.spec()).testAppId!, spec.mode)}`);
-      void vscode.window
-        .showInformationMessage(
-          translate('Dify 测试应用已发布', interfaceLanguage()),
-          translate('打开应用', interfaceLanguage()),
-        )
-        .then((value) =>
-          value
-            ? vscode.env.openExternal(
-                vscode.Uri.parse(c.url((controller.record?.testAppId)!, spec.mode)),
-              )
-            : undefined,
-        );
+      host.published(c.url(controller.record?.testAppId!, spec.mode));
     } finally {
       await controller.abandon();
       await bridge?.close();
@@ -662,7 +585,7 @@ export function activate(context: vscode.ExtensionContext) {
     ensureIdle();
     const chat = await journal();
     if (chat.snapshot().messages.length) {
-      const folder = path.join(context.globalStorageUri.fsPath, 'chat-history');
+      const folder = path.join(host.storagePath, 'chat-history');
       await fs.mkdir(folder, { recursive: true, mode: 0o700 });
       await fs.writeFile(
         path.join(folder, chat.snapshot().id + '.json'),
@@ -761,23 +684,17 @@ export function activate(context: vscode.ExtensionContext) {
       const controller = new TaskController(s, c, limits(), notify);
       const updated = await controller.promote(async () => {
         const spec = await s.spec();
-        await vscode.commands.executeCommand(
-          'vscode.diff',
-          vscode.Uri.file(path.join(s.privateRoot, 'original.yml')),
-          vscode.Uri.file(s.dslPath),
-          interfaceLanguage() === 'en'
-            ? 'Dify original → candidate changes'
-            : 'Dify 原应用 → 候选修改',
+        await host.showDiff(
+          path.join(s.privateRoot, 'original.yml'),
+          s.dslPath,
+          host.locale() === 'en' ? 'Dify original → candidate changes' : 'Dify 原应用 → 候选修改',
         );
-        await vscode.window.showTextDocument(vscode.Uri.file(s.reportPath), { preview: false });
-        return (
-          (await vscode.window.showWarningMessage(
-            interfaceLanguage() === 'en'
-              ? `Update and publish original application ${spec.name} (${spec.originalAppId})? The DSL diff and test report are open.`
-              : `更新并发布原应用 ${spec.name} (${spec.originalAppId})？已打开 DSL 差异和测试报告。`,
-            { modal: true },
-            translate('更新原应用', interfaceLanguage()),
-          )) === translate('更新原应用', interfaceLanguage())
+        await host.openFile(s.reportPath);
+        return host.confirm(
+          host.locale() === 'en'
+            ? `Update and publish original application ${spec.name} (${spec.originalAppId})? Review the DSL diff and test report before confirming.`
+            : `更新并发布原应用 ${spec.name} (${spec.originalAppId})？请先检查 DSL 差异和测试报告。`,
+          translate('更新原应用', host.locale()),
         );
       });
       if (updated) log('原应用更新完成');
@@ -786,62 +703,29 @@ export function activate(context: vscode.ExtensionContext) {
       await emitState();
     }
   };
-  handlers.openDsl = async () =>
-    vscode.window.showTextDocument(vscode.Uri.file((await store()).dslPath));
-  handlers.openReport = async () =>
-    vscode.window.showTextDocument(vscode.Uri.file((await store()).reportPath));
+  handlers.openDsl = async () => host.openFile((await store()).dslPath);
+  handlers.openReport = async () => host.openFile((await store()).reportPath);
   handlers.diff = async () => {
     const s = await store();
-    await vscode.commands.executeCommand(
-      'vscode.diff',
-      vscode.Uri.file(path.join(s.privateRoot, 'original.yml')),
-      vscode.Uri.file(s.dslPath),
-      'Dify 原应用 → 候选修改',
+    await host.showDiff(
+      path.join(s.privateRoot, 'original.yml'),
+      s.dslPath,
+      host.locale() === 'en' ? 'Dify original → candidate changes' : 'Dify 原应用 → 候选修改',
     );
   };
 
-  for (const name of Object.keys(handlers))
-    context.subscriptions.push(
-      vscode.commands.registerCommand('aladdinDify.' + name, async (payload) => {
-        try {
-          return await invoke(name, payload);
-        } catch (e) {
-          const text = e instanceof Error ? e.message : String(e);
-          log(text);
-          void vscode.window.showErrorMessage(text);
-          throw e;
-        }
-      }),
-    );
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeWorkspaceFolders(() => void emitState().catch(() => {})),
-    vscode.workspace.onDidGrantWorkspaceTrust(() => void emitState().catch(() => {})),
-  );
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('aladdinDify')) void emitState().catch(() => {});
-    }),
-  );
-  if (!context.globalState.get<boolean>('settingsWelcomeV2')) {
-    settings.open();
-    void context.globalState.update('settingsWelcomeV2', true);
-  }
-  // Wait until activation has returned before focusing our own view.
-  const revealTimer = setTimeout(() => {
-    if (vscode.workspace.getConfiguration('aladdinDify').get<boolean>('showTaskOnStartup', true))
-      void handlers.showTask!().catch((e) => log('任务面板打开失败：' + redact(String(e))));
-  }, 0);
-  context.subscriptions.push({ dispose: () => clearTimeout(revealTimer) });
   return {
-    ui: {
-      taskViewReady: () => sidebar.isResolved,
-      taskViewVisible: () => sidebar.isVisible,
-      scriptsReady: () => sidebar.isReady && settings.isReady,
+    invoke,
+    state: getState,
+    refresh: emitState,
+    busy: () => Boolean(active || starting || changingSettings),
+    async shutdown() {
+      preparing?.abort(new Error('Application closing'));
+      await active?.cancel();
+      await active?.abandon();
+      await bridge?.close();
+      if (chatSaveTimer) clearTimeout(chatSaveTimer);
+      await Promise.allSettled([...journals.values()].map(async (chat) => (await chat).flush()));
     },
   };
-}
-export async function deactivate() {
-  await active?.cancel();
-  await active?.abandon();
-  await bridge?.close();
 }

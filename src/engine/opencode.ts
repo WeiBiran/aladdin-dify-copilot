@@ -116,10 +116,10 @@ export class OpenCodeEngine implements AgentEngine {
       const consume = (data: Buffer) => {
         output += data.toString();
         if (output.length > 16000) output = output.slice(-16000);
-        const m = output.match(/https?:\/\/127\.0\.0\.1:\d+/);
+        const m = output.match(/opencode server listening on (http:\/\/127\.0\.0\.1:\d+)/);
         if (m) {
           clearTimeout(timer);
-          resolve(m[0]);
+          resolve(m[1]!);
         }
       };
       child.stdout!.on('data', consume);
@@ -143,6 +143,29 @@ export class OpenCodeEngine implements AgentEngine {
         Authorization: 'Basic ' + Buffer.from('opencode:' + this.password).toString('base64'),
       },
     });
+    // The CLI may print its address before the HTTP server finishes starting.
+    // Only retry a read-only health check, never session creation or tool writes.
+    const readinessDeadline = Date.now() + 15000;
+    let ready = false;
+    while (Date.now() < readinessDeadline && child.exitCode === null) {
+      try {
+        const response = await fetch(url + '/global/health', {
+          headers: {
+            Authorization: 'Basic ' + Buffer.from('opencode:' + this.password).toString('base64'),
+          },
+          signal: AbortSignal.timeout(2000),
+        });
+        const health = response.ok ? object(await response.json()) : {};
+        if (health.healthy === true && health.version === OPENCODE_VERSION) {
+          ready = true;
+          break;
+        }
+      } catch {
+        /* The process is still starting. */
+      }
+      await sleep(100);
+    }
+    if (!ready) throw new Error('OpenCode did not become healthy before session initialization');
     if (this.sessionId) {
       await this.client.session.get({ path: { id: this.sessionId }, throwOnError: true });
     } else {

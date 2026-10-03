@@ -7,7 +7,7 @@
     "noUncheckedIndexedAccess": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node", "vscode"],
+    "types": ["node"],
     "lib": ["ES2023", "DOM"],
     "resolveJsonModule": true
   },

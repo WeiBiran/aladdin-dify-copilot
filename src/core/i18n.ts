@@ -1,14 +1,22 @@
 export type Locale = 'en' | 'zh-CN';
 export type LanguageSetting = 'auto' | Locale;
-export function resolveLanguage(setting: LanguageSetting, vscodeLanguage: string): Locale {
-  return setting === 'auto' ? (/^zh(?:-|$)/i.test(vscodeLanguage) ? 'zh-CN' : 'en') : setting;
+export function resolveLanguage(setting: LanguageSetting, browserLanguage: string): Locale {
+  return setting === 'auto' ? (/^zh(?:-|$)/i.test(browserLanguage) ? 'zh-CN' : 'en') : setting;
 }
 // Keys are the existing Chinese source messages. User prompts, model replies,
 // tool definitions, saved project names and credentials never pass through this table.
 export const englishMessages: Record<string, string> = {
   设置: 'Settings',
+  跟随浏览器: 'Follow browser',
+  '密码与会话保存在系统安全凭据存储中。':
+    'Passwords and sessions are stored in the system credential store.',
+  '默认使用内置 OpenCode 版本': 'Use the included OpenCode version by default',
+  跟随系统: 'Follow system',
+  返回聊天: 'Back to chat',
+  启动时打开聊天: 'Open chat at startup',
+  '密码与会话使用系统安全凭据加密保存。':
+    'Passwords and sessions are encrypted using secure system storage.',
   任务: 'Chat',
-  '跟随 VS Code': 'Follow VS Code',
   界面语言: 'Interface language',
   打开右侧任务面板: 'Open chat panel',
   连接你的开发环境: 'Connect your development environment',
@@ -33,8 +41,6 @@ export const englishMessages: Record<string, string> = {
   登录邮箱: 'Login email',
   登录密码: 'Login password',
   输入登录密码: 'Enter your login password',
-  '密码与会话保存在 VS Code 安全凭据存储中。':
-    'Passwords and sessions are stored in VS Code SecretStorage.',
   选择工作空间: 'Select workspace',
   保存工作空间并同步: 'Save workspace and sync',
   连接并同步: 'Connect and sync',
@@ -53,7 +59,7 @@ export const englishMessages: Record<string, string> = {
   '其他 OpenCode 供应商': 'Other OpenCode provider',
   'API 地址': 'API URL',
   '输入 API Key': 'Enter your API key',
-  '密钥仅保存在安全凭据存储中。': 'Keys are stored only in SecretStorage.',
+  '密钥仅保存在安全凭据存储中。': 'Keys are stored only in the system credential store.',
   '例如 deepseek-chat': 'e.g. deepseek-chat',
   '支持从供应商读取模型列表，也可填写实际模型 ID。':
     'Fetch available models or enter an actual model ID.',
@@ -72,10 +78,8 @@ export const englishMessages: Record<string, string> = {
   '单次运行时限（分钟）': 'Run timeout (minutes)',
   '生成模型 Token 预算': 'Generation token budget',
   'Dify 执行 Token 预算': 'Dify execution token budget',
-  '启动 VS Code 时显示右侧任务面板': 'Show the chat panel when VS Code starts',
   高级设置: 'Advanced settings',
   'OpenCode 路径（可选）': 'OpenCode path (optional)',
-  默认使用插件内置版本: 'Use the bundled runtime by default',
   保存执行限制: 'Save execution limits',
   新对话: 'New conversation',
   打开设置: 'Open settings',

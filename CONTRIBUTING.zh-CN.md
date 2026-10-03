@@ -1,15 +1,23 @@
 # 贡献指南
 
-[English](CONTRIBUTING.md) · [简体中文](CONTRIBUTING.zh-CN.md)
+[English](CONTRIBUTING.md) | [简体中文](CONTRIBUTING.zh-CN.md)
 
-当前为 Beta。欢迎用中文或英文提 Issue，也可以 Fork 后提交 PR；提交信息使用英文。
+当前为 Beta，欢迎中英文 Issue 和 PR。Fork 后创建分支，说明问题、行为变化和验证证据。**提交信息使用英文。**
 
-运行 `npm ci`、`npm run check`、`node scripts/stage-runtime.mjs` 和 `npm run test:engine`。提交前执行 `npm run format`。CI 在 macOS ARM64、Windows x64 和 Linux x64 构建运行时包。
+```sh
+npm ci
+npm run check
+node scripts/stage-runtime.mjs
+npm run test:engine
+npm start -- --no-open --port 0
+npm run package
+npm run test:package
+```
 
-新增 Dify 版本时，建立版本适配器，核对认证、工具与模型响应、导入状态、草稿运行 SSE、发布和节点默认配置。使用脱敏夹具覆盖接口变化，并按 `docs/acceptance.md` 保留真实运行证据；仅夹具通过时在兼容矩阵写“待验证”。
+提交前运行 `npm run format`，再重新编译，将 `dist/cli.mjs`、`dist/browser.js`、`dist/webview.js` 一起提交：GitHub `npx` 直接运行这些文件，CI 会检查它们与源码是否一致。不要添加 `build`、`prepare`、`prepack` 或安装生命周期脚本，否则 npm 会为 Git 依赖安装开发包。编译命令为 `npm run compile`。
 
-新增 Agent 引擎实现 `AgentEngine`；监督器与 Dify 业务工具无需迁移。不要把通用规划、模型上下文压缩或修复规划重新写入宿主。
+安装包测试在临时目录禁用安装脚本后安装，验证带认证页面／API 和运行时定位，再停止服务。原生引擎测试使用真实 OpenCode／SDK／MCP 和本地模型夹具。模拟 Dify 通过不代表真实兼容，请逐项查看 macOS／Windows／Linux CI 结果。
 
-保持真实工具身份和参数；不要按显示名称匹配，不要把 Dify 业务工具凭据交给生成模型。未知写操作结果需要核对，不能以重试掩盖。变更测试基线需显式新建任务。
+新增 Dify 适配器时，需要准确版本的官方源码、脱敏夹具和真实导入／运行／发布证据。差异放在适配层，保留工具真实身份、完整参数、未知输出、固定测试、凭据边界、冲突检查和未知写操作核对。通用规划与上下文由 OpenCode 负责，不在应用中重复实现。
 
-提交问题或 PR 前脱敏。项目采用 MIT，新增依赖必须保留许可声明。Marketplace 上架不在此次 Beta 交付范围。
+中英文界面和成对文档需要同步。`humanizer-zh` 仅为可选写作辅助，不是产品依赖；润色时保留事实限制。提交前删除凭据、内部地址、客户数据和私有报告。项目采用 MIT，新增依赖需要保留许可。npm 仓库发布和生产业务认证是独立工作，不因 GitHub Beta 发布而完成。

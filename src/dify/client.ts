@@ -220,7 +220,7 @@ export class DifyClient {
       throw new ApiError(
         409,
         'import',
-        `Dify 导入状态 ${r.status}：${String(r.error ?? '需要版本确认或修复')}。插件不会强制确认跨版本导入。`,
+        `Dify 导入状态 ${r.status}：${String(r.error ?? '需要版本确认或修复')}。应用不会强制确认跨版本导入。`,
       );
     if (!r.app_id) throw new Error('导入未返回应用 ID');
     return String(r.app_id);
@@ -304,7 +304,7 @@ export class DifyClient {
       throw new ApiError(
         409,
         'ambiguous',
-        'Dify 运行结果未知，可能已执行外部业务操作。请先核对运行日志和业务状态，插件不会自动重测。',
+        'Dify 运行结果未知，可能已执行外部业务操作。请先核对运行日志和业务状态，应用不会自动重测。',
       );
     }
   }

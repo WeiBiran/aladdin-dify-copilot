@@ -3,12 +3,13 @@ import { setupChat } from './chat-client';
 import { translate, type Locale } from '../core/i18n';
 let locale: Locale = document.body.dataset.locale === 'en' ? 'en' : 'zh-CN';
 const t = (text: string) => translate(text, locale);
-declare function acquireVsCodeApi(): {
+declare function acquireAppApi(): {
   postMessage(message: unknown): void;
   getState(): any;
   setState(state: unknown): void;
 };
-const api = acquireVsCodeApi();
+const api = acquireAppApi();
+api.postMessage({ id: 'renderer-ready', command: 'rendererReady' });
 const page = document.body.dataset.page;
 const pending = new Map<
   string,
@@ -84,7 +85,7 @@ function renderReadiness(s: UiState) {
     el('password-hint').textContent = t(
       s.connection?.hasPassword
         ? '已保存密码，留空可继续使用；填写新值会替换。'
-        : '密码与会话保存在 VS Code 安全凭据存储中。',
+        : '密码与会话保存在系统安全凭据存储中。',
     );
     el('key-hint').textContent = t(
       s.model?.hasKey ? '已保存密钥，同一供应商与地址留空可保留。' : '密钥仅保存在安全凭据存储中。',
@@ -153,7 +154,6 @@ function render(s: UiState) {
       el<HTMLInputElement>('generation-budget').value = String(s.limits.generationTokenBudget);
       el<HTMLInputElement>('dify-budget').value = String(s.limits.difyTokenBudget);
       el<HTMLInputElement>('opencode-path').value = s.limits.opencodePath;
-      el<HTMLInputElement>('show-task-startup').checked = s.limits.showTaskOnStartup;
     }
     if (!dirtySettings.has('runtime-form'))
       options(
@@ -347,7 +347,6 @@ if (page === 'settings') {
           generationTokenBudget: Number(value('generation-budget')),
           difyTokenBudget: Number(value('dify-budget')),
           opencodePath: value('opencode-path'),
-          showTaskOnStartup: el<HTMLInputElement>('show-task-startup').checked,
         });
         dirtySettings.delete('limits-form');
         render(await request('getState'));

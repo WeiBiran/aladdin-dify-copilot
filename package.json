@@ -1,183 +1,38 @@
 {
-  "name": "aladdin-dify-copilot",
-  "displayName": "Aladdin Dify Copilot",
-  "description": "%extension.description%",
-  "version": "0.3.1",
-  "publisher": "aladdin",
+  "name": "aladdin-dify",
+  "version": "0.5.0-beta.1",
+  "description": "Wei Biran's FDE delivery toolkit for Dify: an OpenCode harness with a browser UI.",
   "license": "MIT",
+  "type": "module",
+  "bin": {
+    "aladdin-dify": "dist/cli.mjs"
+  },
   "engines": {
-    "vscode": "^1.106.0"
+    "node": ">=22"
   },
-  "categories": [
-    "Machine Learning",
-    "Other"
+  "files": [
+    "dist/",
+    "docs/",
+    "examples/",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "CHANGELOG.zh-CN.md"
   ],
-  "main": "./dist/extension.js",
-  "extensionKind": [
-    "workspace"
-  ],
-  "activationEvents": [
-    "onView:aladdinDify.taskPanel",
-    "onStartupFinished"
-  ],
-  "contributes": {
-    "commands": [
-      {
-        "command": "aladdinDify.settings",
-        "title": "%command.settings%",
-        "icon": "$(gear)"
-      },
-      {
-        "command": "aladdinDify.showTask",
-        "title": "%command.showTask%",
-        "icon": "$(layout-sidebar-right)"
-      },
-      {
-        "command": "aladdinDify.newChat",
-        "title": "%command.newChat%",
-        "icon": "$(add)"
-      },
-      {
-        "command": "aladdinDify.initialize",
-        "title": "%command.initialize%"
-      },
-      {
-        "command": "aladdinDify.connect",
-        "title": "%command.connect%"
-      },
-      {
-        "command": "aladdinDify.configureModel",
-        "title": "%command.configureModel%"
-      },
-      {
-        "command": "aladdinDify.sync",
-        "title": "%command.sync%"
-      },
-      {
-        "command": "aladdinDify.generate",
-        "title": "%command.generate%"
-      },
-      {
-        "command": "aladdinDify.cancel",
-        "title": "%command.cancel%"
-      },
-      {
-        "command": "aladdinDify.resume",
-        "title": "%command.resume%"
-      },
-      {
-        "command": "aladdinDify.promote",
-        "title": "%command.promote%"
-      },
-      {
-        "command": "aladdinDify.openReport",
-        "title": "%command.openReport%"
-      },
-      {
-        "command": "aladdinDify.openDsl",
-        "title": "%command.openDsl%"
-      },
-      {
-        "command": "aladdinDify.diff",
-        "title": "%command.diff%"
-      }
-    ],
-    "viewsContainers": {
-      "secondarySidebar": [
-        {
-          "id": "aladdinDifyRight",
-          "title": "Dify Copilot",
-          "icon": "$(symbol-method)"
-        }
-      ]
-    },
-    "views": {
-      "aladdinDifyRight": [
-        {
-          "id": "aladdinDify.taskPanel",
-          "name": "Dify Copilot",
-          "type": "webview",
-          "visibility": "visible"
-        }
-      ]
-    },
-    "configuration": {
-      "title": "Dify Copilot",
-      "properties": {
-        "aladdinDify.maxRepairs": {
-          "type": "number",
-          "default": 5,
-          "minimum": 0,
-          "maximum": 20,
-          "description": "%configuration.maxRepairs%"
-        },
-        "aladdinDify.taskTimeoutMinutes": {
-          "type": "number",
-          "default": 30,
-          "minimum": 1,
-          "maximum": 120,
-          "description": "%configuration.taskTimeoutMinutes%"
-        },
-        "aladdinDify.generationTokenBudget": {
-          "type": "number",
-          "default": 100000,
-          "minimum": 1000,
-          "description": "%configuration.generationTokenBudget%"
-        },
-        "aladdinDify.difyTokenBudget": {
-          "type": "number",
-          "default": 100000,
-          "minimum": 1000,
-          "description": "%configuration.difyTokenBudget%"
-        },
-        "aladdinDify.opencodePath": {
-          "type": "string",
-          "default": "",
-          "description": "%configuration.opencodePath%"
-        },
-        "aladdinDify.showTaskOnStartup": {
-          "type": "boolean",
-          "default": true,
-          "description": "%configuration.showTaskOnStartup%"
-        },
-        "aladdinDify.language": {
-          "type": "string",
-          "enum": [
-            "auto",
-            "en",
-            "zh-CN"
-          ],
-          "default": "auto",
-          "description": "%configuration.language%"
-        }
-      }
-    },
-    "menus": {
-      "view/title": [
-        {
-          "command": "aladdinDify.newChat",
-          "when": "view == aladdinDify.taskPanel",
-          "group": "navigation@1"
-        },
-        {
-          "command": "aladdinDify.settings",
-          "when": "view == aladdinDify.taskPanel",
-          "group": "navigation"
-        }
-      ]
-    }
-  },
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "start": "node dist/cli.mjs",
+    "dev": "npm run compile && npm start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "npm run typecheck && npm test && npm run build",
-    "package": "node scripts/package.mjs",
-    "vscode:prepublish": "npm run build",
+    "check": "npm run typecheck && npm run compile && npm test",
     "test:engine": "node scripts/test-engine.mjs",
-    "format": "prettier --write src test scripts docs examples *.json *.md .github .vscode",
-    "test:host": "npm run build && node scripts/test-host.mjs",
-    "notices": "node scripts/notices.mjs"
+    "format": "prettier --write src test scripts docs examples *.json *.md .github",
+    "notices": "node scripts/notices.mjs",
+    "package": "npm run compile && node scripts/pack.mjs",
+    "test:package": "node scripts/test-package.mjs",
+    "compile": "node scripts/build.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.0",
@@ -187,31 +42,18 @@
     "re2js": "2.8.6",
     "tough-cookie": "5.1.2",
     "yaml": "2.9.1",
-    "zod": "3.25.76"
-  },
-  "devDependencies": {
-    "@types/node": "22.19.7",
-    "@types/vscode": "1.100.0",
-    "@vscode/vsce": "4.0.0",
-    "esbuild": "0.28.2",
-    "prettier": "3.9.9",
-    "typescript": "5.9.3",
-    "vitest": "5.0.3"
+    "zod": "3.25.76",
+    "@napi-rs/keyring": "2.1.0"
   },
   "optionalDependencies": {
     "opencode-ai": "1.18.34"
   },
-  "capabilities": {
-    "untrustedWorkspaces": {
-      "supported": "limited",
-      "description": "%workspaceTrust%",
-      "restrictedConfigurations": [
-        "aladdinDify.opencodePath"
-      ]
-    },
-    "virtualWorkspaces": {
-      "supported": false
-    }
+  "devDependencies": {
+    "@types/node": "22.19.7",
+    "esbuild": "0.28.2",
+    "prettier": "3.9.9",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3"
   },
   "repository": {
     "type": "git",
@@ -227,6 +69,9 @@
     "opencode",
     "workflow",
     "chatflow",
-    "evaluation"
+    "evaluation",
+    "harness",
+    "web",
+    "cli"
   ]
 }

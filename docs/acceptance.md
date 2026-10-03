@@ -2,7 +2,7 @@
 
 [English](acceptance.md) · [简体中文](acceptance.zh-CN.md)
 
-A target environment needs a root or Console API URL, an exact deployment version, an account permitted to read tools and edit apps, a configured runtime model, and approved business test data. Enter passwords and keys only in the extension's credential fields.
+A target environment needs a root or Console API URL, an exact deployment version, an account permitted to read tools and edit apps, a configured runtime model, and approved business test data. Enter passwords and keys only in the browser application's Settings fields.
 
 ## Interface checks
 
@@ -28,7 +28,7 @@ A target environment needs a root or Console API URL, an exact deployment versio
 - [ ] Parameter/reference faults can be repaired; permission or credential problems stop appropriately.
 - [ ] Tests cannot be weakened. Candidate, remote draft, or dependency changes invalidate publication evidence.
 - [ ] Original-app promotion has confirmation, conflict detection, a DSL backup, and a deployment record.
-- [ ] Native engine tests and VSIX installation pass on macOS ARM64, Windows x64, and Linux x64.
+- [ ] Native engine tests and npm package installation pass on macOS ARM64, Windows x64, and Linux x64.
 - [ ] Redacted live evidence is archived before changing the compatibility matrix. Fixture results remain explicitly marked as mocked.
 
 Run tests only within authorized business scopes. Reports can contain business outputs; do not publish unredacted reports.

@@ -38,7 +38,6 @@ export const limitForm = z.object({
   generationTokenBudget: z.number().int().min(1000).max(100_000_000),
   difyTokenBudget: z.number().int().min(1000).max(100_000_000),
   opencodePath: z.string().max(4096).default(''),
-  showTaskOnStartup: z.boolean().default(true),
 });
 export const taskForm = z
   .object({

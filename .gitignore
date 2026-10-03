@@ -1,5 +1,8 @@
 node_modules/
-dist/
+dist/*
+!dist/cli.mjs
+!dist/browser.js
+!dist/webview.js
 runtime/
 artifacts/
 coverage/
@@ -7,3 +10,6 @@ coverage/
 .env*
 .dify-copilot-local/
 .DS_Store
+
+node_modules/
+*.log

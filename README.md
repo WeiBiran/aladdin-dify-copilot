@@ -1,106 +1,97 @@
-# Aladdin Dify Copilot
+# Aladdin Dify
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-**Wei Biran's FDE delivery toolkit for Dify.** Build Workflow and Chatflow applications from a business brief, verify them against acceptance tests, and iterate with an agent inside VS Code.
+**Wei Biran's FDE delivery toolkit for Dify.** Describe a business task, build a Workflow or Chatflow with an OpenCode agent, and verify its candidate against a fixed test baseline. Run it locally with npm and use it in your browser.
 
-**Beta · 0.3.1** — APIs, node coverage, and the delivery process are still being validated. See [validation status](docs/compatibility.md) before choosing a deployment. Bugs and missing integrations are expected; [open an issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues) or fork the repository and send a pull request.
+**Beta · 0.5.0-beta.1.** [Report an issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose) or fork the repository and send a pull request. Live business acceptance is still open; read the [verification status](docs/compatibility.md) before relying on a deployment.
 
-[Download the Beta](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.3.1-beta.1) · [Installation and usage](#installation-and-usage) · [Contributing](CONTRIBUTING.md)
+## Start with one command
 
-## The problem
+Install [Node.js 22+](https://nodejs.org/en/download), then run this in a business project folder:
 
-An FDE (Forward Deployed Engineer) needs to turn a customer's requirements into a workflow that can be demonstrated, tested, and delivered. A plausible diagram is only part of that work: tools must actually exist in the customer's Dify workspace, their parameters must match, and the resulting workflow must meet the agreed criteria.
+```sh
+npx --yes github:WeiBiran/aladdin-dify-copilot
+```
 
-This extension brings those steps into one project. It discovers the tools, models, and knowledge bases visible in an existing Dify instance. An OpenCode agent reads the relevant definitions, writes native Dify DSL, and uses test failures to revise its candidate. The extension keeps the test baseline fixed and controls imports, execution limits, and publishing.
+The first run installs the dependencies, including the official OpenCode runtime. The command starts a service bound to `127.0.0.1` and opens its private launch link in your browser. Keep the terminal running; **Ctrl+C** stops the service and cancels active tasks. Configuration happens in the webpage. VS Code, Electron, Docker, a global OpenCode CLI, and an npm registry account are not required.
 
-The goal is to shorten the path from a business brief to a **validated candidate**, while retaining the DSL, test cases, and delivery evidence needed to review it. This beta does not claim a measured speed improvement or production readiness.
+To select a specific project and release:
 
-## What it does
+```sh
+npx --yes github:WeiBiran/aladdin-dify-copilot#v0.5.0-beta.1 ./customer-project
+```
 
-- **See the actual environment.** Sync built-in/plugin, custom API, workflow, and MCP tools, plus models and knowledge bases. The agent fetches full definitions for selected tools instead of guessing IDs or parameters.
-- **Build through conversation.** Choose Workflow or Chatflow, describe the task, and follow replies, tool calls, validation, tests, and repairs in the right-hand chat panel.
-- **Evaluate and iterate.** Freeze a test baseline, run Workflow cases or independent Chatflow conversations, check assertions, and return failure evidence to the same agent session. The default limit is five repair rounds.
-- **Deliver a tested candidate.** Import into a dedicated test application and publish after the gates pass. For an existing application, work on a test copy; updating the original requires a diff, confirmation, and a conflict check.
-- **Keep a local project.** Store the brief, native YAML DSL, and tests in ordinary files. Credentials, chat history, capability caches, and raw run records stay in extension storage.
-- **Use English or Chinese.** The interface follows VS Code by default; choose English or Simplified Chinese in the extension's Settings page. Both READMEs describe the same beta scope.
+The directory must already exist; the browser's folder picker can also create and select a project. Use `--port 0` to choose a free port, `--no-open` to print the link without opening a browser, or `--help` for all options. The default port is `8787`. If it is occupied, choose another port.
 
-Evaluation currently uses deterministic assertions for fields, structure, values, formats, nodes, and multi-turn results. Agent analysis drives repairs. **LLM-as-judge scoring is not implemented in this beta.**
+This release is distributed through GitHub, **not the npm registry**. The short command `npx aladdin-dify` is not available. The repository includes compiled launch files, so GitHub installation does not require a local build. [Release downloads](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.5.0-beta.1) include the npm tarball, source archive, and SHA-256 checksums.
 
-## Installation and usage
+## The problem it solves
 
-### 1. Install the extension
+An FDE (Forward Deployed Engineer) needs to turn a customer's requirements into a workflow that can be demonstrated, tested, and delivered. The customer's tools must exist, their parameters must match, and the workflow must meet the agreed criteria. Drawing a plausible workflow does not establish any of those things.
 
-Requirements: **VS Code 1.106+**, an existing self-hosted Dify instance, a console account with application-editing and tool-reading access, and a generation model with tool calling.
+Aladdin Dify discovers the tools, models, and knowledge bases visible to your account in an existing Dify workspace. OpenCode reads the relevant definitions, writes native Dify DSL, and revises its candidate using test failures. The application controls the test baseline, execution limits, imports, and publishing. Requirements, DSL, and tests remain ordinary project files.
 
-1. Open the [Beta release](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.3.1-beta.1) and download the VSIX for your operating system and CPU architecture.
-2. In VS Code, open Extensions → **…** → **Install from VSIX…** and select the downloaded file.
-3. Reload the VS Code window after an upgrade.
+The aim is to shorten the path from a brief to a **validated candidate**, with evidence available for review. This Beta does not claim a measured speed improvement or production readiness.
 
-The initial locally validated installer targets **macOS Apple Silicon (`darwin-arm64`)**. Other platform packages are published only when their CI builds pass; packaging alone is not evidence of real Dify compatibility. The official OpenCode **1.18.34** runtime is bundled. A global OpenCode installation and Docker are not required.
+## Configure in the browser
 
-### 2. Configure the environment
+Open the gear button in Chat. Settings support English and Simplified Chinese, following the browser language by default.
 
-Open **Dify: Open Settings** from the Command Palette. The extension also opens Settings on first activation.
+1. **Dify connection:** enter the root or Console API URL, actual supported Dify version, email, and password. Click **Connect and sync**, then select a workspace if needed. A published app's Service API key cannot replace console authentication.
+2. **Generation model:** choose DeepSeek, OpenAI, an OpenAI-compatible API, or another OpenCode provider. Enter its API URL where required, key, and actual model ID. Fetch the model list if the provider exposes one.
+3. **Workflow runtime model:** choose from the catalog already configured in Dify, or let the agent choose. This is separate from the generation model above.
+4. **Execution limits:** set repair rounds, timeout, and separate generation/Dify token budgets. Defaults: five repairs, 30 minutes, and 100,000 tokens for each budget.
 
-- **Interface language:** Auto, English, or Simplified Chinese. Changing it reloads the extension pages; enter unsaved credentials after switching languages.
-- **Dify connection:** enter the instance root or Console API URL, the actual supported Dify version, login email, and password. Click **Connect and sync**. Select a workspace if the account has more than one.
-- **Generation model:** choose DeepSeek, OpenAI, an OpenAI-compatible API, or another OpenCode provider. Enter its API URL where required, API key, and actual model ID. You can fetch a model list when the provider exposes one.
-- **Workflow runtime model:** select a model from Dify's available catalog or let the agent choose. This model is configured separately from the extension's generation model.
-- **Execution limits:** set repair rounds, run timeout, generation token budget, and Dify execution token budget.
+Passwords, API keys, cookies, and tokens use the OS credential store through `@napi-rs/keyring`. macOS uses Keychain; Windows uses Credential Manager. Linux needs an available Secret Service or kernel keyring; kernel-only storage may not persist after logout/reboot. Storage errors are reported; there is no plaintext fallback. Switch the interface language before entering unsaved credentials because the page reloads.
 
-This beta implements console email/password authentication for **Dify 1.14.2 / DSL 0.6.0** and **1.17.1 / DSL 0.7.0**. A Dify application Service API key does not replace console authentication. SSO-only deployments and other versions require additional adapters.
+The version adapters target **Dify 1.14.2 / DSL 0.6.0** and **1.17.1 / DSL 0.7.0**. Other versions and SSO-only deployments need additional adapters. Version selection is explicit; the application does not claim to detect every deployment version automatically.
 
-### 3. Start a delivery task
+## Build, test, and deliver
 
-Create a business project folder, open it in VS Code, and trust it before connecting or running the agent. Settings and chat remain visible in Restricted Mode, but execution is blocked.
+The main page is a Chat interface: messages and tool calls in the timeline, a composer at the bottom, and task/model options beside it.
 
-Open the right-hand **Dify Copilot** tab. If it is hidden, click **Dify** in the status bar or run **Dify: Open Chat Panel**. VS Code's built-in Chat is a separate tab.
+1. Choose **Workflow** or **Chatflow**. The folder button changes the current project.
+2. Open **＋ / Task options** to set the application name, acceptance criteria, or an existing application to improve.
+3. Define the allowed test scope for business tools, HTTP requests, and code nodes. A Dify test copy does not isolate writes to external systems.
+4. Describe the task and send with **Enter**; **Shift+Enter** adds a line. Follow replies, real tool calls, validation, tests, and repairs. Stop with the composer stop button.
+5. Open the generated DSL and report. A new test application is published automatically after the gates pass. Updating an existing original requires reviewing the diff/report and confirming the target; remote conflicts stop the update.
 
-1. Select **Workflow** or **Chatflow** beside the composer.
-2. Open **＋ / Task options** to set an application name, acceptance criteria, or an existing application to improve.
-3. Decide whether the task may execute business tools, HTTP requests, and code nodes within your approved test scope. A test copy isolates the Dify definition; it does not isolate changes to external business systems.
-4. Describe the requirement and press **Enter** to send. Use **Shift+Enter** for a new line.
-5. Follow the conversation, tool calls, and test evidence. Stop the task with the composer stop button. Resume a stopped task or send a follow-up change request in the same conversation.
-6. When the candidate passes, open the DSL and test report. A tested new application is published automatically. Updating an original application requires your confirmation after reviewing its diff and report.
+Example:
 
-Example brief:
+> Build a support Chatflow. Ask for the product model when it is missing, use the available knowledge base and business tools to investigate the fault, and cite evidence in the answer. Independent test conversations must not share context.
 
-> Build a support Chatflow. Ask for the product model when it is missing, use the existing knowledge base and business tools to investigate the fault, and cite evidence in the answer. Separate test conversations must not share context.
+The agent discovers built-in/plugin, API, workflow, and Dify-connected MCP tools. It fetches full definitions for selected tools and retains real provider/tool identities, required parameters, and unknown outputs. It does not ask you to manually register all existing MCP tools or copy their documentation into a prompt.
 
-The first message fixes the target and acceptance baseline. Follow-ups keep that baseline and the same test application. A new conversation can set a different target; it archives the previous conversation without deleting project files. There is no history browser yet.
+Tests check fields, JSON structure, types, ranges, formats, nodes/branches, and multi-turn results. Each Chatflow case gets an independent conversation. The first test baseline is frozen; a repair cannot delete failed cases or lower their criteria. Follow-up messages keep that baseline, target, and test application. A new conversation archives the previous record; there is no history browser yet.
 
-## Project files and delivery evidence
+**LLM-as-judge scoring is not implemented.** Agent analysis drives repairs; the evaluation gates use deterministic assertions. Unchanged errors, missing credentials, limits, and ambiguous write outcomes stop automatic progress instead of producing a success placeholder.
+
+## Local files and privacy
 
 ```text
 customer-project/
-  dify.project.json  # App type and connection/original/test app references
-  requirements.md    # Generated from the brief; no manual Markdown setup required
-  workflow.yml       # Native Dify DSL
-  tests.json         # Fixed acceptance test baseline
+  dify.project.json  # Target, app type, original/test app references
+  requirements.md   # Generated from the brief; no manual Markdown setup
+  workflow.yml      # Native Dify DSL
+  tests.json        # Fixed test baseline
 ```
 
-Passwords, keys, cookies, and tokens use VS Code SecretStorage. Chat history, capabilities, test reports, raw run data, backups, and deployment records live in extension-owned storage outside the project. A report can contain business output; review and redact it before sharing.
+Private settings, chat history, capability caches, reports, raw runs, backups, and deployment records live in `~/.aladdin-dify`, separate from the project. `--data-dir` selects another location and an independent keyring namespace. Reports may contain business output; redact them before sharing. Credentials are absent from public UI state, DSL, and ordinary logs.
 
-Publishing is bound to the tested DSL, test baseline, and used environment capabilities. Changes require revalidation. Unknown results after a network interruption are kept for reconciliation instead of blindly repeating a write. An existing application's secret environment variables may need configuration in its test copy; automatic updates containing node secret configuration are blocked until a safe merge is available.
+The web service requires a short-lived, single-use launch ticket, then an HttpOnly/SameSite cookie. It checks the host and POST origin, exposes only allowlisted operations, and does not offer arbitrary terminal execution. Keep the printed launch link private. It listens only on loopback, not your LAN.
 
-## Beta scope and validation
+Publication is tied to the tested DSL and capability/test digests. Changed files or dependencies require new validation. Interrupted writes are reconciled rather than blindly replayed. Test copies may need secret environment variables configured in Dify; unsafe secret-node merges block original-app updates. External writes have no cross-system rollback.
 
-| Area                 | Current status                                                                                                                                                                       |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Chat and Settings    | Real VS Code host checks: activation, right sidebar, form persistence, language switching, SecretStorage, and key isolation                                                          |
-| OpenCode + SDK + MCP | Real pinned native runtime and tool transport on macOS ARM64; model responses in these tests come from local fixtures                                                                |
-| Dify 1.14.2          | Actual browser discovery and minimal Workflow/Chatflow import, run, and publish checks; plugin HTTP access and full business tasks still need validation with configured credentials |
-| Dify 1.17.1          | Versioned source contracts and mocked tests; no real instance acceptance claim                                                                                                       |
-| Windows / Linux      | Native build and engine CI matrix; see CI and release assets for the results of this release                                                                                         |
+## What has been verified
 
-Each supported node still needs import and execution evidence on the target version. Parsing YAML or passing a fixture is not sufficient. The [compatibility matrix](docs/compatibility.md) and [acceptance checklist](docs/acceptance.md) track the remaining work.
+Local checks cover the authenticated HTTP API, browser Chat/Settings, both languages, project selection, native macOS keyring persistence, installed npm package startup, and real OpenCode/SDK/MCP communication using deterministic model fixtures. These fixtures do not call a live DeepSeek account.
 
-Not included: Dify Cloud, standalone Agent applications, SSO, human-approval or trigger nodes, semantic scoring, additional agent engines, and Marketplace publication. External side effects do not have cross-system rollback.
+Previous checks on an actual Dify 1.14.2 instance covered browser tool discovery and minimal Workflow/Chatflow import, run, and publication. **The new browser application's full Dify business loop remains unverified with configured credentials.** Dify 1.17.1 has source-contract and mocked-interface tests only. Every generated node still needs live import/run evidence on the target version. See [compatibility](docs/compatibility.md), [acceptance cases](docs/acceptance.md), and this commit's [CI results](https://github.com/WeiBiran/aladdin-dify-copilot/actions).
+
+Not included: Dify Cloud, independent Agent app types, SSO, human-approval/trigger nodes, semantic scoring, and alternative agent engines. This release replaces the earlier VS Code interface; it does not ship VSIX or native desktop installers.
 
 ## Development
-
-Use Node.js 22+ and npm:
 
 ```sh
 git clone https://github.com/WeiBiran/aladdin-dify-copilot.git
@@ -109,17 +100,15 @@ npm ci
 npm run check
 node scripts/stage-runtime.mjs
 npm run test:engine
+npm start -- --no-open --port 0
 npm run package
+npm run test:package
 ```
 
-Press **F5** in this repository to launch an Extension Development Host, then open a business folder in that window. `npm run package` creates a VSIX for the current host platform. `npm run test:host` uses an isolated temporary VS Code profile; `DIFY_VSIX` can point it at a packaged installer.
+`npm test` uses mocked Dify interfaces and a real loopback web server. `test:engine` starts the pinned native runtime with real SDK/MCP transport and local model fixtures. `test:package` installs the tarball into an isolated directory with install scripts disabled and verifies its launch, assets, and API. After source changes run `npm run compile`; before pushing include the three compiled files in `dist/` so GitHub `npx` remains runnable. CI runs on macOS, Windows, and Linux; consult its actual results.
 
-`npm test` uses mocked Dify interfaces. `npm run test:engine` runs native OpenCode with real SDK/MCP communication and a local model fixture; it does not call a real DeepSeek account. Actual Dify acceptance uses the checklist and an approved environment.
-
-See [architecture](docs/architecture.md), [contributing](CONTRIBUTING.md), and [changelog](CHANGELOG.md). The project is licensed under [MIT](LICENSE); dependency licenses are listed in [third-party notices](THIRD_PARTY_NOTICES.md).
+See [architecture](docs/architecture.md), [contributing](CONTRIBUTING.md), and [changelog](CHANGELOG.md). Licensed under [MIT](LICENSE), with [dependency notices](THIRD_PARTY_NOTICES.md).
 
 ## Feedback
 
-This is a Beta. If something fails, [open an issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose) with the extension version, OS/architecture, Dify version, reproduction steps, and redacted error. Chinese and English reports are welcome. Do not include keys, passwords, cookies, internal URLs, or customer data.
-
-Fork the repository to adapt it to your environment. Pull requests with tests and a clear account of what was actually verified are welcome.
+This is a Beta. [Open an issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose) with the app version, Node version, OS/architecture, Dify version, reproduction steps, and redacted error. English and Chinese are welcome. Do not attach credentials, internal URLs, customer data, or raw private logs. Fork the repository to adapt it to your environment; contributions with tests and honest validation evidence are welcome.
