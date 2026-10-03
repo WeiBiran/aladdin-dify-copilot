@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { resolveLanguage, translate, translateMarkup } from '../src/core/i18n';
 import { settingsMarkup, taskMarkup } from '../src/ui/markup';
+import { workbenchMarkup } from '../src/web/workbench-view';
 
 describe('interface localization', () => {
   it('follows Chinese locales, falls back to English, and honors overrides', () => {
@@ -11,7 +12,7 @@ describe('interface localization', () => {
   });
 
   it('translates both static pages without changing DOM IDs or command bindings', () => {
-    for (const source of [settingsMarkup, taskMarkup]) {
+    for (const source of [settingsMarkup, taskMarkup, workbenchMarkup]) {
       const translated = translateMarkup(source, 'en');
       expect(translated.match(/id="[^"]+"/g)).toEqual(source.match(/id="[^"]+"/g));
       expect(translated.match(/data-action="[^"]+"/g)).toEqual(

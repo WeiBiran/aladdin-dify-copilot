@@ -2,6 +2,51 @@
 (() => {
   // src/core/i18n.ts
   var englishMessages = {
+    \u7528\u5BF9\u8BDD\u6784\u5EFA\u667A\u80FD\u4F53: "Build an agent through chat",
+    "\u5F53\u524D\u9879\u76EE\u8FD8\u6CA1\u6709\u5BF9\u5E94\u7684 Dify \u6D4B\u8BD5\u5E94\u7528\u3002": "This project has no Dify test app yet.",
+    "\u9884\u89C8\u6240\u5C5E\u9879\u76EE\u5DF2\u5207\u6362\uFF0C\u8BF7\u5237\u65B0\u3002": "The preview project changed. Refresh to continue.",
+    \u667A\u80FD\u4F53\u9879\u76EE: "Agent projects",
+    "\uFF0B \u521B\u5EFA\u667A\u80FD\u4F53": "+ Create agent",
+    "\u641C\u7D22\u9879\u76EE\u2026": "Search projects\u2026",
+    \u641C\u7D22\u9879\u76EE: "Search projects",
+    \u9879\u76EE\u5217\u8868: "Project list",
+    "\u2197 \u6253\u5F00\u672C\u5730\u9879\u76EE": "\u2197 Open local project",
+    "\u6BCF\u4E2A\u9879\u76EE\u4FDD\u5B58\u72EC\u7ACB\u7684\u5BF9\u8BDD\u3001\u5DE5\u4F5C\u6D41\u548C\u6D4B\u8BD5\u3002": "Each project keeps its own conversation, workflow, and tests.",
+    \u6784\u5EFA\u667A\u80FD\u4F53: "Build an agent",
+    \u8C03\u6574\u9884\u89C8\u5BBD\u5EA6: "Resize preview",
+    \u667A\u80FD\u4F53\u9884\u89C8: "Agent preview",
+    \u9884\u89C8\u5185\u5BB9: "Preview content",
+    \u7BA1\u7406: "Manage",
+    \u8FD0\u884C: "Run",
+    \u6D4B\u8BD5: "Tests",
+    \u5237\u65B0\u9884\u89C8: "Refresh preview",
+    \u5728\u65B0\u7A97\u53E3\u6253\u5F00Dify: "Open Dify in a new window",
+    "\u5728\u65B0\u7A97\u53E3\u6253\u5F00 Dify": "Open Dify in a new window",
+    \u7B49\u5F85\u521B\u5EFA\u6D4B\u8BD5\u5E94\u7528: "Waiting for a test app",
+    \u6D4B\u8BD5\u5E94\u7528: "Test app",
+    "Dify \u5E94\u7528\u9884\u89C8": "Dify app preview",
+    "\u8FB9\u6784\u5EFA\uFF0C\u8FB9\u4F53\u9A8C": "Build and try it side by side",
+    "\u63CF\u8FF0\u667A\u80FD\u4F53\u8981\u5B8C\u6210\u7684\u4EFB\u52A1\uFF0C\u751F\u6210\u540E\u4F1A\u5728\u8FD9\u91CC\u6253\u5F00 Dify \u5E94\u7528\u3002": "Describe what your agent should do. Its Dify app will open here after import.",
+    "\u8FDE\u63A5 Dify \u548C\u751F\u6210\u6A21\u578B": "Connect Dify and a generation model",
+    \u901A\u8FC7\u5BF9\u8BDD\u6784\u5EFA\u4E0E\u4F18\u5316: "Build and improve through chat",
+    "\u9884\u89C8\u3001\u8FD0\u884C\u5E76\u68C0\u67E5\u6D4B\u8BD5\u7ED3\u679C": "Preview, run, and inspect test results",
+    \u914D\u7F6E\u5F00\u53D1\u73AF\u5883: "Configure environment",
+    \u5C1A\u672A\u5F00\u59CB: "Not started",
+    \u80FD\u529B\u540C\u6B65\u540E\u81EA\u52A8\u9009\u7528\u5DE5\u5177: "Tools are discovered from Dify",
+    \u5168\u5C40\u8BBE\u7F6E: "Global settings",
+    \u5173\u95ED\u8BBE\u7F6E: "Close settings",
+    \u7528\u5BF9\u8BDD\u4EA4\u4ED8\u667A\u80FD\u4F53: "Deliver agents through chat",
+    \u9879\u76EE: "Projects",
+    \u9884\u89C8: "Preview",
+    \u5207\u6362\u751F\u6210\u6A21\u578B: "Switch generation model",
+    \u6253\u5F00\u5168\u5C40\u8BBE\u7F6E: "Open global settings",
+    "\u2699 \u8BBE\u7F6E": "\u2699 Settings",
+    \u8BFB\u53D6\u6A21\u578B\u5217\u8868\u540E\u9009\u62E9: "Fetch models to choose",
+    "\u81EA\u5B9A\u4E49\u6A21\u578B ID\u2026": "Custom model ID\u2026",
+    "\u586B\u5165 API Key \u540E\u8BFB\u53D6\u6A21\u578B\u5217\u8868\uFF0C\u518D\u4ECE\u4E0B\u62C9\u83DC\u5355\u9009\u62E9\u3002": "Enter an API key, fetch the model list, then choose from the dropdown.",
+    "\u6A21\u578B ID": "Model ID",
+    \u586B\u5199\u4F9B\u5E94\u5546\u7684\u5B9E\u9645\u6A21\u578BID: "Enter an actual provider model ID",
+    "\u586B\u5199\u4F9B\u5E94\u5546\u7684\u5B9E\u9645\u6A21\u578B ID": "Enter an actual provider model ID",
     \u8BBE\u7F6E: "Settings",
     \u8DDF\u968F\u6D4F\u89C8\u5668: "Follow browser",
     "\u5BC6\u7801\u4E0E\u4F1A\u8BDD\u4FDD\u5B58\u5728\u7CFB\u7EDF\u5B89\u5168\u51ED\u636E\u5B58\u50A8\u4E2D\u3002": "Passwords and sessions are stored in the system credential store.",
@@ -211,8 +256,8 @@
     );
     if (round)
       return `${englishMessages[round[1]] ?? round[1]} \xB7 Round ${round[2]}${round[3]?.replace("\u751F\u6210 ", "Generation ").replace(" / Dify ", " / Dify ") ?? ""}`;
-    const models = text.match(/^已读取 (\d+) 个模型，可在生成模型输入框中选择。$/);
-    if (models) return `Found ${models[1]} models. Select one in the generation model field.`;
+    const models = text.match(/^已读取 (\d+) 个模型，可在(?:生成模型输入框|下拉菜单)中选择。$/);
+    if (models) return `Found ${models[1]} models. Select one from the dropdown.`;
     const selected = text.match(/^已选应用 · (.+)$/);
     if (selected) return `Selected application \xB7 ${selected[1]}`;
     const tools = text.match(/^(\d+) 个工具( · 待处理)?$/);
@@ -407,7 +452,7 @@
         if (!node.parentNode) transcript.append(node);
       }
       const first = chat.messages.find((m) => m.kind === "user");
-      el2("chat-title").textContent = first ? first.text.slice(0, 35).replace(/\n/g, " ") : t2("\u65B0\u5BF9\u8BDD");
+      el2("chat-title").textContent = state2?.task?.name ?? (first ? first.text.slice(0, 35).replace(/\n/g, " ") : t2("\u65B0\u5BF9\u8BDD"));
       if (atBottom || changed) scroll.scrollTop = scroll.scrollHeight;
       if (state2) readiness();
     }
@@ -469,11 +514,13 @@
     }
     function render2(s) {
       const changed = workspacePath !== s.workspace?.path;
+      if (initialized2 && changed) draft();
       state2 = s;
       locale2 = s.locale;
       workspacePath = s.workspace?.path;
       if (!initialized2 || changed) {
-        const saved = api2.getState();
+        if (s.chat) renderChat(s.chat);
+        const saved = api2.getState(workspacePath);
         const matches = saved?.workspacePath === workspacePath && saved?.chatId === s.chat?.id;
         const t3 = matches ? saved.task : s.task;
         el2("task-name").value = t3?.name ?? s.workspace?.name ?? "";
@@ -655,8 +702,22 @@
     select.value = selected;
     if (select.selectedIndex < 0) select.selectedIndex = 0;
   }
+  function renderModelOptions(models, selected) {
+    options(
+      "model-id",
+      [
+        { value: "", label: "\u8BFB\u53D6\u6A21\u578B\u5217\u8868\u540E\u9009\u62E9" },
+        ...[.../* @__PURE__ */ new Set([...models, ...selected && selected !== "__custom" ? [selected] : []])].map(
+          (model) => ({ value: model, label: model })
+        ),
+        { value: "__custom", label: "\u81EA\u5B9A\u4E49\u6A21\u578B ID\u2026" }
+      ],
+      selected
+    );
+    el("custom-model-field").hidden = selected !== "__custom";
+    el("custom-model-id").required = selected === "__custom";
+  }
   function renderReadiness(s) {
-    if (page === "task") return;
     {
       el("connection-status").textContent = t(s.connection ? "\u5DF2\u4FDD\u5B58" : "\u672A\u914D\u7F6E");
       el("connection-status").classList.toggle("ready", Boolean(s.connection));
@@ -675,7 +736,7 @@
         el("dataset-count").textContent = String(s.capabilities.datasets);
         el("sync-summary").textContent = `${locale === "en" ? "Last sync: " : "\u4E0A\u6B21\u540C\u6B65\uFF1A"}${new Date(s.capabilities.fetchedAt).toLocaleString()}${s.capabilities.complete ? " \xB7 " + t("\u4FE1\u606F\u5B8C\u6574") : " \xB7 " + s.capabilities.issues.join("; ")}`;
       }
-      document.querySelectorAll("form button").forEach((b) => b.disabled = s.busy);
+      document.querySelectorAll(".settings-shell form button").forEach((b) => b.disabled = s.busy);
     }
   }
   function updateProvider(defaults = false) {
@@ -686,7 +747,7 @@
     el("model-url").required = p !== "other";
     if (defaults) {
       el("model-url").value = p === "deepseek" ? "https://api.deepseek.com/v1" : p === "openai" ? "https://api.openai.com/v1" : "";
-      el("model-id").value = "";
+      renderModelOptions([], "");
       el("model-key").value = "";
     }
   }
@@ -695,7 +756,6 @@
     locale = s.locale;
     if (page === "task") {
       chatUi?.render(s);
-      return;
     }
     {
       el("ui-language").value = s.language;
@@ -709,7 +769,7 @@
         el("model-provider").value = m && ["deepseek", "openai", "custom"].includes(m.provider) ? m.provider : m ? "other" : "deepseek";
         el("provider-id").value = m?.provider ?? "";
         el("model-url").value = m?.baseUrl ?? (m ? "" : "https://api.deepseek.com/v1");
-        el("model-id").value = m?.model ?? "";
+        renderModelOptions(s.generationModels, m?.model ?? "");
         updateProvider();
       }
       if (!initialized || !dirtySettings.has("limits-form")) {
@@ -760,7 +820,7 @@
       )
     )
   );
-  if (page === "settings") {
+  if (el("model-form")) {
     el("ui-language").addEventListener(
       "change",
       () => void action(
@@ -772,6 +832,10 @@
     );
     document.querySelectorAll("form").forEach((f) => f.addEventListener("input", () => dirtySettings.add(f.id)));
     el("model-provider").addEventListener("change", () => updateProvider(true));
+    el("model-id").addEventListener("change", () => {
+      el("custom-model-field").hidden = value("model-id") !== "__custom";
+      el("custom-model-id").required = value("model-id") === "__custom";
+    });
     el("connection-form").addEventListener("submit", (e) => {
       e.preventDefault();
       void action(
@@ -829,7 +893,7 @@
     const modelPayload = () => ({
       provider: value("model-provider") === "other" ? value("provider-id") : value("model-provider"),
       baseUrl: value("model-provider") === "other" ? void 0 : value("model-url"),
-      model: value("model-id"),
+      model: value("model-id") === "__custom" ? value("custom-model-id") : value("model-id"),
       apiKey: value("model-key")
     });
     el("model-form").addEventListener("submit", (e) => {
@@ -855,15 +919,10 @@
           const payload = modelPayload();
           const { model, ...discovery } = payload;
           const r = await request("discoverModels", discovery);
-          el("generation-models").replaceChildren();
-          for (const id of r.models) {
-            const o = document.createElement("option");
-            o.value = id;
-            el("generation-models").append(o);
-          }
-          if (r.models.length && !value("model-id"))
-            el("model-id").value = r.models[0];
-          message("model-message", `\u5DF2\u8BFB\u53D6 ${r.models.length} \u4E2A\u6A21\u578B\uFF0C\u53EF\u5728\u751F\u6210\u6A21\u578B\u8F93\u5165\u6846\u4E2D\u9009\u62E9\u3002`);
+          renderModelOptions(
+            r.models,
+            r.models.includes(payload.model) ? payload.model : r.models[0] ?? ""
+          );
           return r;
         },
         ""
@@ -871,7 +930,7 @@
         if (r)
           message(
             "model-message",
-            `\u5DF2\u8BFB\u53D6 ${r.models.length} \u4E2A\u6A21\u578B\uFF0C\u53EF\u5728\u751F\u6210\u6A21\u578B\u8F93\u5165\u6846\u4E2D\u9009\u62E9\u3002`
+            `\u5DF2\u8BFB\u53D6 ${r.models.length} \u4E2A\u6A21\u578B\uFF0C\u53EF\u5728\u4E0B\u62C9\u83DC\u5355\u4E2D\u9009\u62E9\u3002`
           );
       })
     );

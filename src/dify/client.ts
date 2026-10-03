@@ -2,7 +2,7 @@ import type { ProjectSpec, AppMode, DifyRun } from '../core/types';
 import { DifyTransport } from './transport';
 import { CapabilityRegistry } from './capabilities';
 import { collectRun } from './sse';
-import { array, object, ApiError, digest } from '../core/util';
+import { array, object, ApiError, digest, normalizeBaseUrl } from '../core/util';
 import { parse, stringify } from 'yaml';
 import { createHash, createDecipheriv } from 'node:crypto';
 import { versionContract } from './versions';
@@ -354,5 +354,23 @@ export class DifyClient {
   }
   url(appId: string, mode: AppMode) {
     return `${this.transport.baseUrl}/app/${appId}/${mode === 'advanced-chat' ? 'workflow' : 'workflow'}`;
+  }
+  async preview(appId: string, mode: AppMode, signal = AbortSignal.timeout(15000)) {
+    await this.assertWorkspace(signal);
+    const app = await this.app(appId, signal);
+    const site = object(app.site);
+    const code = site.code ?? site.access_token;
+    const base =
+      typeof site.app_base_url === 'string' && site.app_base_url
+        ? normalizeBaseUrl(site.app_base_url)
+        : this.transport.baseUrl;
+    return {
+      editorUrl: this.url(appId, mode),
+      runtimeUrl:
+        app.enable_site === true && typeof code === 'string' && code
+          ? `${base}/${mode === 'advanced-chat' ? 'chatbot' : 'workflow'}/${encodeURIComponent(code)}`
+          : undefined,
+      published: Boolean(app.workflow),
+    };
   }
 }

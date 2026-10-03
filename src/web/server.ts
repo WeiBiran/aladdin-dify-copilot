@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { randomBytes } from 'node:crypto';
+import { z } from 'zod';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -11,12 +12,19 @@ import { digest, redact } from '../core/util';
 import { resolveLanguage, type LanguageSetting } from '../core/i18n';
 import { UI_COMMANDS } from '../ui/contracts';
 import { browserPage } from './page';
+import { ProjectStore } from '../core/project';
+import { previewPage } from './preview';
 
 type WebEvent =
   | ApplicationEvent
   | { type: 'navigate'; path: string }
   | { type: 'folder'; path: string }
-  | { type: 'preview'; title: string; files: { label: string; content: string }[] }
+  | {
+      type: 'preview';
+      title: string;
+      projectPath: string;
+      files: { label: string; content: string }[];
+    }
   | { type: 'confirm'; id: string; message: string; label: string }
   | { type: 'published'; url: string };
 export interface WebOptions {
@@ -38,6 +46,29 @@ export async function startWebApplication(options: WebOptions) {
   const projectStore = (directory: string) =>
     new JsonStore(path.join(dataDir, 'project-settings', digest(directory) + '.json')).load();
   let projectState = await projectStore(projectPath);
+  async function rememberProject(directory: string) {
+    const registered = settings.get<string[]>('workbench.projects', [])!;
+    await settings.update('workbench.projects', [
+      directory,
+      ...registered.filter((p) => p !== directory),
+    ]);
+  }
+  await rememberProject(projectPath);
+  async function projects() {
+    return Promise.all(
+      settings.get<string[]>('workbench.projects', [])!.map(async (directory) => {
+        const s = new ProjectStore(directory, path.join(dataDir, 'projects', digest(directory)));
+        const spec = await s.spec().catch(() => undefined);
+        const missing = !(await fs.stat(directory).catch(() => undefined))?.isDirectory();
+        return {
+          path: directory,
+          name: spec?.name ?? path.basename(directory),
+          mode: spec?.mode,
+          missing,
+        };
+      }),
+    );
+  }
   let browserLanguage = 'en';
   let projectChanging = false;
   let closing = false;
@@ -85,6 +116,7 @@ export async function startWebApplication(options: WebOptions) {
     locale: () =>
       resolveLanguage(settings.get<LanguageSetting>('config.language', 'auto'), browserLanguage),
     project: () => ({ path: projectPath, name: path.basename(projectPath), trusted: true }),
+    projects,
     emit,
     log: (text) => options.log?.(redact(text)),
     showSettings: async () => emit({ type: 'navigate', path: '/settings' }),
@@ -94,12 +126,13 @@ export async function startWebApplication(options: WebOptions) {
       const content = await readPreview(file);
       const next = { label: path.basename(file), content };
       const files = preview?.files.length === 2 ? [...preview.files, next] : [next];
-      preview = { type: 'preview', title: path.basename(file), files };
+      preview = { type: 'preview', title: path.basename(file), projectPath, files };
       emit(preview);
     },
     showDiff: async (original, candidate, title) => {
       preview = {
         type: 'preview',
+        projectPath,
         title,
         files: [
           { label: 'Original · ' + path.basename(original), content: await readPreview(original) },
@@ -206,6 +239,27 @@ export async function startWebApplication(options: WebOptions) {
       res.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' });
       return res.end(await fs.readFile(path.join(options.assetsPath, url.pathname.slice(1))));
     }
+    if (req.method === 'GET' && url.pathname === '/preview') {
+      res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+      let view;
+      let error;
+      try {
+        view = await application.invoke('appPreview', {
+          projectPath: url.searchParams.get('project') ?? projectPath,
+        });
+      } catch (e) {
+        error = e instanceof Error ? e.message : 'Preview unavailable.';
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(
+        previewPage(
+          view as any,
+          url.searchParams.get('view') === 'runtime' ? 'runtime' : 'editor',
+          host.locale(),
+          error,
+        ),
+      );
+    }
     if (req.method === 'GET' && url.pathname === '/api/events') {
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
@@ -256,11 +310,30 @@ export async function startWebApplication(options: WebOptions) {
         home: os.homedir(),
       });
     }
-    if (url.pathname === '/api/project') {
+    if (url.pathname === '/api/project' || url.pathname === '/api/projects/create') {
       if (application.busy() || projectChanging)
         return json(res, 409, { error: 'Stop the current task before changing projects.' });
       projectChanging = true;
       try {
+        if (url.pathname === '/api/projects/create') {
+          const form = z
+            .object({
+              name: z.string().trim().min(1).max(100),
+              mode: z.enum(['workflow', 'advanced-chat']),
+            })
+            .parse(payload);
+          const managed = path.join(dataDir, 'agents');
+          await fs.mkdir(managed, { recursive: true, mode: 0o700 });
+          const selected = await fs.mkdtemp(path.join(managed, 'agent-'));
+          const s = new ProjectStore(selected, path.join(dataDir, 'projects', digest(selected)));
+          await s.initialize(form.name, form.mode);
+          await rememberProject(selected);
+          projectPath = selected;
+          projectState = await projectStore(selected);
+          preview = undefined;
+          await application.refresh();
+          return json(res, 200, { path: selected });
+        }
         if (typeof payload.path !== 'string' || payload.path.length > 4096)
           throw new Error('Enter a directory path.');
         let selected = await fs.realpath(payload.path);
@@ -273,9 +346,11 @@ export async function startWebApplication(options: WebOptions) {
             throw new Error('Enter a simple folder name.');
           selected = path.join(selected, payload.create);
           await fs.mkdir(selected, { mode: 0o700 });
+          selected = await fs.realpath(selected);
         }
         if (!(await fs.stat(selected)).isDirectory()) throw new Error('Select a directory.');
         const next = await projectStore(selected);
+        await rememberProject(selected);
         projectPath = selected;
         projectState = next;
         preview = undefined;

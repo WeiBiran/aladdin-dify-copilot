@@ -4,7 +4,11 @@
 
 **Wei Biran's FDE delivery toolkit for Dify.** Describe a business task, build a Workflow or Chatflow with an OpenCode agent, and verify its candidate against a fixed test baseline. Run it locally with npm and use it in your browser.
 
-**Beta · 0.5.0-beta.2.** [Report an issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose) or fork the repository and send a pull request. Live business acceptance is still open; read the [verification status](docs/compatibility.md) before relying on a deployment.
+**Beta · 0.6.0-beta.1.** [Report an issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose) or fork the repository and send a pull request. Live business acceptance is still open; read the [verification status](docs/compatibility.md) before relying on a deployment.
+
+![Agent workbench](docs/images/workbench.png)
+
+The screenshot shows a project before Dify/model configuration; it is not a completed business run.
 
 ## Start with one command
 
@@ -19,12 +23,12 @@ The first run installs the dependencies, including the official OpenCode runtime
 To select a specific project and release:
 
 ```sh
-npx --yes github:WeiBiran/aladdin-dify-copilot#v0.5.0-beta.2 ./customer-project
+npx --yes github:WeiBiran/aladdin-dify-copilot#v0.6.0-beta.1 ./customer-project
 ```
 
-The directory must already exist; the browser's folder picker can also create and select a project. Use `--port 0` to choose a free port, `--no-open` to print the link without opening a browser, or `--help` for all options. The default port is `8787`. If it is occupied, choose another port.
+The CLI directory must already exist. In the browser, **Create agent** creates a managed project without asking for a folder; **Open local project** imports an existing directory. Use `--port 0` to choose a free port, `--no-open` to print the link without opening a browser, or `--help` for all options. The default port is `8787`. If it is occupied, choose another port.
 
-This release is distributed through GitHub, **not the npm registry**. The short command `npx aladdin-dify` is not available. The repository includes compiled launch files, so GitHub installation does not require a local build. [Release downloads](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.5.0-beta.2) include the npm tarball, source archive, and SHA-256 checksums.
+This release is distributed through GitHub, **not the npm registry**. The short command `npx aladdin-dify` is not available. The repository includes compiled launch files, so GitHub installation does not require a local build. [Release downloads](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.6.0-beta.1) include the npm tarball, source archive, and SHA-256 checksums.
 
 ## The problem it solves
 
@@ -36,10 +40,10 @@ The aim is to shorten the path from a brief to a **validated candidate**, with e
 
 ## Configure in the browser
 
-Open the gear button in Chat. Settings support English and Simplified Chinese, following the browser language by default.
+Open **Settings** in the upper-right corner of the workbench. The dialog leaves your current conversation in place. Settings support English and Simplified Chinese, following the browser language by default.
 
 1. **Dify connection:** enter the root or Console API URL, actual supported Dify version, email, and password. Click **Connect and sync**, then select a workspace if needed. A published app's Service API key cannot replace console authentication.
-2. **Generation model:** choose DeepSeek, OpenAI, an OpenAI-compatible API, or another OpenCode provider. Enter its API URL where required, key, and actual model ID. Fetch the model list if the provider exposes one.
+2. **Generation model:** choose DeepSeek, OpenAI, an OpenAI-compatible API, or another OpenCode provider. Enter its API URL where required and key, fetch the model list, then choose from the dropdown. A custom-ID option supports providers without a catalog. The upper-right model dropdown switches among the current provider’s saved models.
 3. **Workflow runtime model:** choose from the catalog already configured in Dify, or let the agent choose. This is separate from the generation model above.
 4. **Execution limits:** set repair rounds, timeout, and separate generation/Dify token budgets. Defaults: five repairs, 30 minutes, and 100,000 tokens for each budget.
 
@@ -49,13 +53,15 @@ The version adapters target **Dify 1.14.2 / DSL 0.6.0** and **1.17.1 / DSL 0.7.0
 
 ## Build, test, and deliver
 
-The main page is a Chat interface: messages and tool calls in the timeline, a composer at the bottom, and task/model options beside it.
+The workbench has three panes: agent projects on the left, a building conversation in the center, and the current Dify test application on the right. The divider resizes the preview; smaller screens use Projects and Preview controls.
 
-1. Choose **Workflow** or **Chatflow**. The folder button changes the current project.
+1. Click **Create agent**, enter a name, and select **Workflow** or **Chatflow**. Each project keeps its own brief, conversation, files, and test-app mapping. Switch projects in the sidebar; unsent drafts remain separate.
 2. Open **＋ / Task options** to set the application name, acceptance criteria, or an existing application to improve.
 3. Define the allowed test scope for business tools, HTTP requests, and code nodes. A Dify test copy does not isolate writes to external systems.
 4. Describe the task and send with **Enter**; **Shift+Enter** adds a line. Follow replies, real tool calls, validation, tests, and repairs. Stop with the composer stop button.
-5. Open the generated DSL and report. A new test application is published automatically after the gates pass. Updating an existing original requires reviewing the diff/report and confirming the target; remote conflicts stop the update.
+5. Use the right-hand **Manage / Run / DSL / Tests** tabs. Manage opens the imported Dify draft; Run opens its published web app. DSL and test reports are displayed beside the conversation. A new test application is published automatically after the gates pass. Updating an existing original requires reviewing the diff/report and confirming the target; remote conflicts stop the update.
+
+The preview uses Dify’s own pages and browser login. Dify or the browser may block framing or third-party sign-in; **Open in a new window** remains available. The toolkit does not relay console cookies to OpenCode or remove Dify’s security headers. A published preview shows the last published version; Manage shows the draft. Until an app exists, the pane explains the next steps.
 
 Example:
 
@@ -77,7 +83,7 @@ customer-project/
   tests.json        # Fixed test baseline
 ```
 
-Private settings, chat history, capability caches, reports, raw runs, backups, and deployment records live in `~/.aladdin-dify`, separate from the project. `--data-dir` selects another location and an independent keyring namespace. Reports may contain business output; redact them before sharing. Credentials are absent from public UI state, DSL, and ordinary logs.
+Projects created from the sidebar live under `~/.aladdin-dify/agents`; local-directory projects remain in their chosen folder. The project list persists across launches. Private settings, chat history, capability caches, reports, raw runs, backups, and deployment records live in `~/.aladdin-dify`, separate from the project. `--data-dir` selects another location and an independent keyring namespace. Reports may contain business output; redact them before sharing. Credentials are absent from public UI state, DSL, and ordinary logs.
 
 The web service requires a short-lived, single-use launch ticket, then an HttpOnly/SameSite cookie. It checks the host and POST origin, exposes only allowlisted operations, and does not offer arbitrary terminal execution. Keep the printed launch link private. It listens only on loopback, not your LAN.
 
@@ -85,7 +91,7 @@ Publication is tied to the tested DSL and capability/test digests. Changed files
 
 ## What has been verified
 
-Local checks cover the authenticated HTTP API, browser Chat/Settings, both languages, project selection, native macOS keyring persistence, installed npm package startup, and real OpenCode/SDK/MCP communication using deterministic model fixtures. These fixtures do not call a live DeepSeek account.
+Local checks cover the authenticated HTTP API, browser Chat/Settings, both languages, project creation/switching, per-project drafts, model dropdowns, preview wrappers, native macOS keyring persistence, installed npm package startup, and real OpenCode/SDK/MCP communication using deterministic model fixtures. These fixtures do not call a live DeepSeek account.
 
 Previous checks on an actual Dify 1.14.2 instance covered browser tool discovery and minimal Workflow/Chatflow import, run, and publication. **The new browser application's full Dify business loop remains unverified with configured credentials.** Dify 1.17.1 has source-contract and mocked-interface tests only. Every generated node still needs live import/run evidence on the target version. See [compatibility](docs/compatibility.md), [acceptance cases](docs/acceptance.md), and this commit's [CI results](https://github.com/WeiBiran/aladdin-dify-copilot/actions).
 

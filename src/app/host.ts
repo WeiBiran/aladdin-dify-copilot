@@ -25,6 +25,7 @@ export interface ApplicationHost {
   runtimePath: string;
   locale(): Locale;
   project(): { name: string; path: string; trusted: boolean } | undefined;
+  projects?(): Promise<NonNullable<UiState['projects']>>;
   emit(event: ApplicationEvent): void;
   log(message: string): void;
   showSettings(): Promise<void>;

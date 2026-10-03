@@ -9,7 +9,8 @@ import os2 from "node:os";
 
 // src/web/server.ts
 import { createServer as createServer2 } from "node:http";
-import { randomBytes as randomBytes4 } from "node:crypto";
+import { randomBytes as randomBytes5 } from "node:crypto";
+import { z as z5 } from "zod";
 import { promises as fs6 } from "node:fs";
 import path6 from "node:path";
 import os from "node:os";
@@ -359,6 +360,51 @@ function resolveLanguage(setting, browserLanguage) {
   return setting === "auto" ? /^zh(?:-|$)/i.test(browserLanguage) ? "zh-CN" : "en" : setting;
 }
 var englishMessages = {
+  \u7528\u5BF9\u8BDD\u6784\u5EFA\u667A\u80FD\u4F53: "Build an agent through chat",
+  "\u5F53\u524D\u9879\u76EE\u8FD8\u6CA1\u6709\u5BF9\u5E94\u7684 Dify \u6D4B\u8BD5\u5E94\u7528\u3002": "This project has no Dify test app yet.",
+  "\u9884\u89C8\u6240\u5C5E\u9879\u76EE\u5DF2\u5207\u6362\uFF0C\u8BF7\u5237\u65B0\u3002": "The preview project changed. Refresh to continue.",
+  \u667A\u80FD\u4F53\u9879\u76EE: "Agent projects",
+  "\uFF0B \u521B\u5EFA\u667A\u80FD\u4F53": "+ Create agent",
+  "\u641C\u7D22\u9879\u76EE\u2026": "Search projects\u2026",
+  \u641C\u7D22\u9879\u76EE: "Search projects",
+  \u9879\u76EE\u5217\u8868: "Project list",
+  "\u2197 \u6253\u5F00\u672C\u5730\u9879\u76EE": "\u2197 Open local project",
+  "\u6BCF\u4E2A\u9879\u76EE\u4FDD\u5B58\u72EC\u7ACB\u7684\u5BF9\u8BDD\u3001\u5DE5\u4F5C\u6D41\u548C\u6D4B\u8BD5\u3002": "Each project keeps its own conversation, workflow, and tests.",
+  \u6784\u5EFA\u667A\u80FD\u4F53: "Build an agent",
+  \u8C03\u6574\u9884\u89C8\u5BBD\u5EA6: "Resize preview",
+  \u667A\u80FD\u4F53\u9884\u89C8: "Agent preview",
+  \u9884\u89C8\u5185\u5BB9: "Preview content",
+  \u7BA1\u7406: "Manage",
+  \u8FD0\u884C: "Run",
+  \u6D4B\u8BD5: "Tests",
+  \u5237\u65B0\u9884\u89C8: "Refresh preview",
+  \u5728\u65B0\u7A97\u53E3\u6253\u5F00Dify: "Open Dify in a new window",
+  "\u5728\u65B0\u7A97\u53E3\u6253\u5F00 Dify": "Open Dify in a new window",
+  \u7B49\u5F85\u521B\u5EFA\u6D4B\u8BD5\u5E94\u7528: "Waiting for a test app",
+  \u6D4B\u8BD5\u5E94\u7528: "Test app",
+  "Dify \u5E94\u7528\u9884\u89C8": "Dify app preview",
+  "\u8FB9\u6784\u5EFA\uFF0C\u8FB9\u4F53\u9A8C": "Build and try it side by side",
+  "\u63CF\u8FF0\u667A\u80FD\u4F53\u8981\u5B8C\u6210\u7684\u4EFB\u52A1\uFF0C\u751F\u6210\u540E\u4F1A\u5728\u8FD9\u91CC\u6253\u5F00 Dify \u5E94\u7528\u3002": "Describe what your agent should do. Its Dify app will open here after import.",
+  "\u8FDE\u63A5 Dify \u548C\u751F\u6210\u6A21\u578B": "Connect Dify and a generation model",
+  \u901A\u8FC7\u5BF9\u8BDD\u6784\u5EFA\u4E0E\u4F18\u5316: "Build and improve through chat",
+  "\u9884\u89C8\u3001\u8FD0\u884C\u5E76\u68C0\u67E5\u6D4B\u8BD5\u7ED3\u679C": "Preview, run, and inspect test results",
+  \u914D\u7F6E\u5F00\u53D1\u73AF\u5883: "Configure environment",
+  \u5C1A\u672A\u5F00\u59CB: "Not started",
+  \u80FD\u529B\u540C\u6B65\u540E\u81EA\u52A8\u9009\u7528\u5DE5\u5177: "Tools are discovered from Dify",
+  \u5168\u5C40\u8BBE\u7F6E: "Global settings",
+  \u5173\u95ED\u8BBE\u7F6E: "Close settings",
+  \u7528\u5BF9\u8BDD\u4EA4\u4ED8\u667A\u80FD\u4F53: "Deliver agents through chat",
+  \u9879\u76EE: "Projects",
+  \u9884\u89C8: "Preview",
+  \u5207\u6362\u751F\u6210\u6A21\u578B: "Switch generation model",
+  \u6253\u5F00\u5168\u5C40\u8BBE\u7F6E: "Open global settings",
+  "\u2699 \u8BBE\u7F6E": "\u2699 Settings",
+  \u8BFB\u53D6\u6A21\u578B\u5217\u8868\u540E\u9009\u62E9: "Fetch models to choose",
+  "\u81EA\u5B9A\u4E49\u6A21\u578B ID\u2026": "Custom model ID\u2026",
+  "\u586B\u5165 API Key \u540E\u8BFB\u53D6\u6A21\u578B\u5217\u8868\uFF0C\u518D\u4ECE\u4E0B\u62C9\u83DC\u5355\u9009\u62E9\u3002": "Enter an API key, fetch the model list, then choose from the dropdown.",
+  "\u6A21\u578B ID": "Model ID",
+  \u586B\u5199\u4F9B\u5E94\u5546\u7684\u5B9E\u9645\u6A21\u578BID: "Enter an actual provider model ID",
+  "\u586B\u5199\u4F9B\u5E94\u5546\u7684\u5B9E\u9645\u6A21\u578B ID": "Enter an actual provider model ID",
   \u8BBE\u7F6E: "Settings",
   \u8DDF\u968F\u6D4F\u89C8\u5668: "Follow browser",
   "\u5BC6\u7801\u4E0E\u4F1A\u8BDD\u4FDD\u5B58\u5728\u7CFB\u7EDF\u5B89\u5168\u51ED\u636E\u5B58\u50A8\u4E2D\u3002": "Passwords and sessions are stored in the system credential store.",
@@ -568,8 +614,8 @@ function translate(text, locale) {
   );
   if (round)
     return `${englishMessages[round[1]] ?? round[1]} \xB7 Round ${round[2]}${round[3]?.replace("\u751F\u6210 ", "Generation ").replace(" / Dify ", " / Dify ") ?? ""}`;
-  const models = text.match(/^已读取 (\d+) 个模型，可在生成模型输入框中选择。$/);
-  if (models) return `Found ${models[1]} models. Select one in the generation model field.`;
+  const models = text.match(/^已读取 (\d+) 个模型，可在(?:生成模型输入框|下拉菜单)中选择。$/);
+  if (models) return `Found ${models[1]} models. Select one from the dropdown.`;
   const selected = text.match(/^已选应用 · (.+)$/);
   if (selected) return `Selected application \xB7 ${selected[1]}`;
   const tools = text.match(/^(\d+) 个工具( · 待处理)?$/);
@@ -1322,6 +1368,18 @@ var DifyClient = class {
   }
   url(appId, mode) {
     return `${this.transport.baseUrl}/app/${appId}/${mode === "advanced-chat" ? "workflow" : "workflow"}`;
+  }
+  async preview(appId, mode, signal = AbortSignal.timeout(15e3)) {
+    await this.assertWorkspace(signal);
+    const app = await this.app(appId, signal);
+    const site = object(app.site);
+    const code = site.code ?? site.access_token;
+    const base = typeof site.app_base_url === "string" && site.app_base_url ? normalizeBaseUrl(site.app_base_url) : this.transport.baseUrl;
+    return {
+      editorUrl: this.url(appId, mode),
+      runtimeUrl: app.enable_site === true && typeof code === "string" && code ? `${base}/${mode === "advanced-chat" ? "chatbot" : "workflow"}/${encodeURIComponent(code)}` : void 0,
+      published: Boolean(app.workflow)
+    };
   }
 };
 
@@ -2893,6 +2951,7 @@ var UI_COMMANDS = /* @__PURE__ */ new Set([
   "selectWorkspace",
   "saveModel",
   "discoverModels",
+  "appPreview",
   "saveLimits",
   "saveRuntime",
   "loadApps",
@@ -3005,16 +3064,36 @@ function createApplication(host) {
     }
   }
   async function getState() {
+    const contextPath = host.project()?.path;
     const p = profile(), m = host.globalState.get("generationModel"), snap = await savedSnapshot(), folder = host.project();
     const s = folder && (host.project()?.trusted ?? true) ? await store() : void 0;
     const spec = s ? await s.spec().catch(() => void 0) : void 0;
     const record = active?.record ?? (s ? await s.record() : void 0);
     const runtime = host.globalState.get("runtimePreference");
-    return {
+    const state2 = {
       chat: (await journal()).snapshot(),
       locale: host.locale(),
       language: host.config.get("language", "auto"),
-      workspace: folder ? { name: folder.name, path: folder.path, trusted: host.project()?.trusted ?? true } : void 0,
+      workspace: folder ? {
+        name: spec?.name ?? folder.name,
+        path: folder.path,
+        trusted: host.project()?.trusted ?? true
+      } : void 0,
+      projects: await host.projects?.(),
+      generationModels: m ? [
+        .../* @__PURE__ */ new Set([
+          m.model,
+          ...host.globalState.get(
+            "models." + digest(m.provider + "|" + (m.baseUrl ?? "")),
+            []
+          )
+        ])
+      ] : [],
+      remoteApp: spec?.testAppId && spec.connectionId === p?.id ? {
+        id: spec.testAppId,
+        editorUrl: `${p.baseUrl}/app/${encodeURIComponent(spec.testAppId)}/workflow`,
+        published: record?.phase === "complete"
+      } : void 0,
       connection: p ? {
         baseUrl: p.baseUrl,
         version: p.version,
@@ -3054,6 +3133,7 @@ function createApplication(host) {
         allowSideEffects: spec.allowSideEffects
       } : void 0,
       run: record ? {
+        id: record.id,
         phase: record.phase,
         round: record.round,
         error: record.error ? redact(record.error) : void 0,
@@ -3062,6 +3142,8 @@ function createApplication(host) {
       busy: Boolean(active || starting || changingSettings),
       taskRunning: Boolean(active || starting)
     };
+    if (contextPath !== host.project()?.path) return getState();
+    return state2;
   }
   async function emitState() {
     const state2 = await getState();
@@ -3213,7 +3295,26 @@ function createApplication(host) {
       throw new Error("\u6A21\u578B\u5217\u8868\u8BFB\u53D6\u5931\u8D25\uFF1AHTTP " + response.status + "\u3002\u53EF\u586B\u5199\u5B9E\u9645\u6A21\u578B ID\u3002");
     const data = await response.json();
     const models = (data.data ?? []).map((m) => m.id).filter((m) => typeof m === "string" && m.length <= 200).slice(0, 1e3);
+    await host.globalState.update("models." + digest(f.provider + "|" + (f.baseUrl ?? "")), [
+      ...new Set(models)
+    ]);
+    await emitState();
     return { models };
+  };
+  handlers.appPreview = async (payload) => {
+    const projectPath = host.project()?.path;
+    const requestedPath = object(payload).projectPath;
+    if (requestedPath !== void 0 && requestedPath !== projectPath)
+      throw new Error("\u9884\u89C8\u6240\u5C5E\u9879\u76EE\u5DF2\u5207\u6362\uFF0C\u8BF7\u5237\u65B0\u3002");
+    const spec = await (await store()).spec();
+    const p = profile();
+    if (!spec.testAppId || !p || spec.connectionId !== p.id)
+      throw new Error("\u5F53\u524D\u9879\u76EE\u8FD8\u6CA1\u6709\u5BF9\u5E94\u7684 Dify \u6D4B\u8BD5\u5E94\u7528\u3002");
+    const c = await client();
+    const view = await c.preview(spec.testAppId, spec.mode);
+    if (projectPath !== host.project()?.path || p.id !== profile()?.id)
+      throw new Error("\u9884\u89C8\u6240\u5C5E\u9879\u76EE\u5DF2\u5207\u6362\uFF0C\u8BF7\u5237\u65B0\u3002");
+    return view;
   };
   handlers.saveRuntime = async (payload) => {
     ensureIdle();
@@ -3612,7 +3713,7 @@ var chatMarkup = `
 <main class="chat-shell">
   <header class="chat-toolbar"><span id="chat-title">\u65B0\u5BF9\u8BDD</span><div class="chat-toolbar-actions"><button class="icon-button" id="new-chat" title="\u65B0\u5BF9\u8BDD" aria-label="\u65B0\u5BF9\u8BDD">${icon("plus")}</button><button class="icon-button" data-command="settings" title="\u8BBE\u7F6E" aria-label="\u6253\u5F00\u8BBE\u7F6E">${icon("gear")}</button></div></header>
   <div class="chat-scroll" id="chat-scroll">
-    <section class="chat-welcome" id="chat-welcome"><div class="welcome-symbol">${icon("chat")}</div><h1>\u7528\u5BF9\u8BDD\u6784\u5EFA Dify</h1><p>\u63CF\u8FF0\u4F60\u7684\u76EE\u6807\uFF0CAgent \u4F1A\u53D1\u73B0\u53EF\u7528\u5DE5\u5177\uFF0C<br>\u7F16\u6392\u3001\u6D4B\u8BD5\u5E76\u6301\u7EED\u6539\u8FDB\u5DE5\u4F5C\u6D41\u3002</p><button class="welcome-setup" id="welcome-setup" data-command="settings">\u914D\u7F6E Dify \u548C\u751F\u6210\u6A21\u578B</button><div class="suggestions"><button data-suggestion="\u6784\u5EFA\u4E00\u4E2A\u5BA2\u670D Chatflow\uFF1A\u4FE1\u606F\u4E0D\u8DB3\u65F6\u5148\u8FFD\u95EE\uFF0C\u518D\u67E5\u8BE2\u77E5\u8BC6\u5E93\u548C\u5DF2\u6709\u5DE5\u5177\uFF0C\u56DE\u7B54\u8981\u63D0\u4F9B\u4F9D\u636E\u3002" data-mode="advanced-chat">\u6784\u5EFA\u5BA2\u670D\u52A9\u624B <span>\u2197</span></button><button data-suggestion="\u6839\u636E\u8F93\u5165\u67E5\u8BE2\u4E24\u4E2A\u5DF2\u6709\u4E1A\u52A1\u5DE5\u5177\uFF0C\u6C47\u603B\u7ED3\u679C\uFF0C\u751F\u6210\u4E00\u4E2A\u5E26\u6761\u4EF6\u5206\u652F\u7684 Workflow\u3002" data-mode="workflow">\u7F16\u6392\u4E1A\u52A1\u5DE5\u5177 <span>\u2197</span></button></div></section>
+    <section class="chat-welcome" id="chat-welcome"><div class="welcome-symbol">${icon("chat")}</div><h1>\u7528\u5BF9\u8BDD\u6784\u5EFA\u667A\u80FD\u4F53</h1><p>\u63CF\u8FF0\u4F60\u7684\u76EE\u6807\uFF0CAgent \u4F1A\u53D1\u73B0\u53EF\u7528\u5DE5\u5177\uFF0C<br>\u7F16\u6392\u3001\u6D4B\u8BD5\u5E76\u6301\u7EED\u6539\u8FDB\u5DE5\u4F5C\u6D41\u3002</p><button class="welcome-setup" id="welcome-setup" data-command="settings">\u914D\u7F6E Dify \u548C\u751F\u6210\u6A21\u578B</button><div class="suggestions"><button data-suggestion="\u6784\u5EFA\u4E00\u4E2A\u5BA2\u670D Chatflow\uFF1A\u4FE1\u606F\u4E0D\u8DB3\u65F6\u5148\u8FFD\u95EE\uFF0C\u518D\u67E5\u8BE2\u77E5\u8BC6\u5E93\u548C\u5DF2\u6709\u5DE5\u5177\uFF0C\u56DE\u7B54\u8981\u63D0\u4F9B\u4F9D\u636E\u3002" data-mode="advanced-chat">\u6784\u5EFA\u5BA2\u670D\u52A9\u624B <span>\u2197</span></button><button data-suggestion="\u6839\u636E\u8F93\u5165\u67E5\u8BE2\u4E24\u4E2A\u5DF2\u6709\u4E1A\u52A1\u5DE5\u5177\uFF0C\u6C47\u603B\u7ED3\u679C\uFF0C\u751F\u6210\u4E00\u4E2A\u5E26\u6761\u4EF6\u5206\u652F\u7684 Workflow\u3002" data-mode="workflow">\u7F16\u6392\u4E1A\u52A1\u5DE5\u5177 <span>\u2197</span></button></div></section>
     <section class="chat-transcript" id="chat-transcript" aria-label="\u5BF9\u8BDD\u8BB0\u5F55" aria-live="polite" aria-relevant="additions text"></section>
     <div id="chat-working" class="chat-working" hidden><span class="working-dot"></span><span id="chat-status">Agent \u6B63\u5728\u51C6\u5907\u2026</span><button id="resume-chat" class="text-button" hidden>\u6062\u590D\u4EFB\u52A1</button></div>
   </div>
@@ -3647,14 +3748,46 @@ var settingsMarkup = `
     <form id="model-form"><div class="grid"><label class="field">\u6A21\u578B\u4F9B\u5E94\u5546<select id="model-provider"><option value="deepseek">DeepSeek</option><option value="openai">OpenAI</option><option value="custom">OpenAI \u517C\u5BB9\u63A5\u53E3</option><option value="other">\u5176\u4ED6 OpenCode \u4F9B\u5E94\u5546</option></select></label><label class="field" id="provider-id-field" hidden>\u4F9B\u5E94\u5546 ID<input id="provider-id" placeholder="\u4F8B\u5982 openrouter" autocomplete="off"></label></div>
     <label class="field" id="model-url-field">API \u5730\u5740<input id="model-url" type="url" value="https://api.deepseek.com/v1" placeholder="https://api.example.com/v1" autocomplete="off"></label>
     <label class="field">API Key<input id="model-key" type="password" autocomplete="new-password" placeholder="\u8F93\u5165 API Key"><span class="help" id="key-hint">\u5BC6\u94A5\u4EC5\u4FDD\u5B58\u5728\u5B89\u5168\u51ED\u636E\u5B58\u50A8\u4E2D\u3002</span></label>
-    <label class="field">\u751F\u6210\u6A21\u578B<input id="model-id" list="generation-models" required placeholder="\u4F8B\u5982 deepseek-chat" autocomplete="off"><datalist id="generation-models"></datalist><span class="help">\u652F\u6301\u4ECE\u4F9B\u5E94\u5546\u8BFB\u53D6\u6A21\u578B\u5217\u8868\uFF0C\u4E5F\u53EF\u586B\u5199\u5B9E\u9645\u6A21\u578B ID\u3002</span></label>
+    <label class="field">\u751F\u6210\u6A21\u578B<select id="model-id" required><option value="">\u8BFB\u53D6\u6A21\u578B\u5217\u8868\u540E\u9009\u62E9</option><option value="__custom">\u81EA\u5B9A\u4E49\u6A21\u578B ID\u2026</option></select><span class="help">\u586B\u5165 API Key \u540E\u8BFB\u53D6\u6A21\u578B\u5217\u8868\uFF0C\u518D\u4ECE\u4E0B\u62C9\u83DC\u5355\u9009\u62E9\u3002</span></label>
+    <label class="field" id="custom-model-field" hidden>\u6A21\u578B ID<input id="custom-model-id" placeholder="\u586B\u5199\u4F9B\u5E94\u5546\u7684\u5B9E\u9645\u6A21\u578B ID" maxlength="200" autocomplete="off"></label>
     <div class="actions"><button class="primary" type="submit">\u4FDD\u5B58\u751F\u6210\u6A21\u578B</button><button type="button" class="ghost" id="discover-models">\u8BFB\u53D6\u6A21\u578B\u5217\u8868</button></div><div class="message" id="model-message" role="status" aria-live="polite"></div></form>
   </section>
   <section class="card" id="runtime"><div class="section-title"><div><h2>\u5DE5\u4F5C\u6D41\u8FD0\u884C\u6A21\u578B</h2><p class="muted">\u5DE5\u4F5C\u6D41\u5728 Dify \u4E2D\u6267\u884C\u65F6\u4F7F\u7528\uFF0C\u7531 Dify \u7BA1\u7406\u8BA4\u8BC1\u548C\u7528\u91CF\u3002</p></div></div><form id="runtime-form"><label class="field">\u9ED8\u8BA4\u6A21\u578B<select id="runtime-model"><option value="">\u8BA9 Agent \u6839\u636E\u9700\u6C42\u9009\u62E9</option></select><span class="help">\u5217\u8868\u6765\u81EA\u8FDE\u63A5\u7684 Dify \u5B9E\u4F8B\uFF0C\u4E0E\u4E0A\u65B9\u751F\u6210\u6A21\u578B\u5206\u522B\u914D\u7F6E\u3002</span></label><button class="primary" type="submit">\u4FDD\u5B58\u8FD0\u884C\u6A21\u578B\u504F\u597D</button><div class="message" id="runtime-message" role="status"></div></form></section>
   <section class="card" id="limits"><div class="section-title"><div><h2>\u6267\u884C\u9650\u5236</h2><p class="muted">\u63A7\u5236\u5355\u6B21\u4EFB\u52A1\u7684\u81EA\u52A8\u4FEE\u590D\u3001\u8FD0\u884C\u65F6\u95F4\u548C\u8C03\u7528\u9884\u7B97\u3002</p></div></div><form id="limits-form"><div class="grid"><label class="field">\u6700\u5927\u4FEE\u590D\u8F6E\u6B21<input id="max-repairs" type="number" min="0" max="20" value="5" required></label><label class="field">\u5355\u6B21\u8FD0\u884C\u65F6\u9650\uFF08\u5206\u949F\uFF09<input id="timeout-minutes" type="number" min="1" max="120" value="30" required></label><label class="field">\u751F\u6210\u6A21\u578B Token \u9884\u7B97<input id="generation-budget" type="number" min="1000" max="100000000" value="100000" required></label><label class="field">Dify \u6267\u884C Token \u9884\u7B97<input id="dify-budget" type="number" min="1000" max="100000000" value="100000" required></label></div><details><summary class="muted">\u9AD8\u7EA7\u8BBE\u7F6E</summary><label class="field spaced-field">OpenCode \u8DEF\u5F84\uFF08\u53EF\u9009\uFF09<input id="opencode-path" placeholder="\u9ED8\u8BA4\u4F7F\u7528\u5185\u7F6E OpenCode \u7248\u672C" autocomplete="off"></label></details><div class="actions"><button class="primary" type="submit">\u4FDD\u5B58\u6267\u884C\u9650\u5236</button></div><div class="message" id="limits-message" role="status"></div></form></section>
   </div></div><div class="message error" id="global-message" role="alert"></div>
 </main>`;
-var taskMarkup = chatMarkup;
+
+// src/web/workbench-view.ts
+var workbenchMarkup = `
+<div class="workbench" id="workbench">
+  <aside class="project-sidebar" aria-label="\u667A\u80FD\u4F53\u9879\u76EE">
+    <div class="sidebar-heading"><span>\u667A\u80FD\u4F53\u9879\u76EE</span><span class="subtle-count" id="project-count">0</span></div>
+    <button class="new-project-button primary" id="create-project">\uFF0B \u521B\u5EFA\u667A\u80FD\u4F53</button>
+    <input id="project-search" type="search" placeholder="\u641C\u7D22\u9879\u76EE\u2026" aria-label="\u641C\u7D22\u9879\u76EE">
+    <nav id="project-list" class="project-list" aria-label="\u9879\u76EE\u5217\u8868"></nav>
+    <footer class="sidebar-footer"><button class="ghost" data-command="selectFolder">\u2197 \u6253\u5F00\u672C\u5730\u9879\u76EE</button><p>\u6BCF\u4E2A\u9879\u76EE\u4FDD\u5B58\u72EC\u7ACB\u7684\u5BF9\u8BDD\u3001\u5DE5\u4F5C\u6D41\u548C\u6D4B\u8BD5\u3002</p></footer>
+  </aside>
+  <section class="conversation-pane" aria-label="\u6784\u5EFA\u667A\u80FD\u4F53">${chatMarkup}</section>
+  <div class="pane-divider" id="preview-divider" role="separator" aria-label="\u8C03\u6574\u9884\u89C8\u5BBD\u5EA6" aria-orientation="vertical" aria-valuemin="30" aria-valuemax="64" aria-valuenow="46" tabindex="0"></div>
+  <aside class="agent-preview" aria-label="\u667A\u80FD\u4F53\u9884\u89C8">
+    <header class="preview-header"><div><span class="eyebrow">DIFY WORKSPACE</span><h2 id="preview-project-name">\u667A\u80FD\u4F53\u9884\u89C8</h2></div><span class="badge" id="preview-app-type">Workflow</span></header>
+    <div class="preview-navigation"><div class="preview-switches" role="tablist" aria-label="\u9884\u89C8\u5185\u5BB9"><button role="tab" aria-selected="true" data-preview="editor">\u7BA1\u7406</button><button role="tab" aria-selected="false" data-preview="runtime">\u8FD0\u884C</button><button role="tab" aria-selected="false" data-preview="dsl">DSL</button><button role="tab" aria-selected="false" data-preview="report">\u6D4B\u8BD5</button></div><div class="preview-utilities"><button id="refresh-preview" aria-label="\u5237\u65B0\u9884\u89C8" title="\u5237\u65B0\u9884\u89C8">\u21BB</button><a id="external-preview" target="_blank" rel="noopener noreferrer" aria-label="\u5728\u65B0\u7A97\u53E3\u6253\u5F00 Dify" title="\u5728\u65B0\u7A97\u53E3\u6253\u5F00 Dify" hidden>\u2197</a></div></div>
+    <div class="preview-address"><span class="address-dot"></span><span id="preview-address">\u7B49\u5F85\u521B\u5EFA\u6D4B\u8BD5\u5E94\u7528</span><span class="preview-test-label">\u6D4B\u8BD5\u5E94\u7528</span></div>
+    <div class="preview-content">
+      <div class="preview-empty" id="preview-empty"><div class="preview-symbol">\u25C7</div><h3>\u8FB9\u6784\u5EFA\uFF0C\u8FB9\u4F53\u9A8C</h3><p id="preview-empty-message">\u63CF\u8FF0\u667A\u80FD\u4F53\u8981\u5B8C\u6210\u7684\u4EFB\u52A1\uFF0C\u751F\u6210\u540E\u4F1A\u5728\u8FD9\u91CC\u6253\u5F00 Dify \u5E94\u7528\u3002</p><ol><li><span>01</span>\u8FDE\u63A5 Dify \u548C\u751F\u6210\u6A21\u578B</li><li><span>02</span>\u901A\u8FC7\u5BF9\u8BDD\u6784\u5EFA\u4E0E\u4F18\u5316</li><li><span>03</span>\u9884\u89C8\u3001\u8FD0\u884C\u5E76\u68C0\u67E5\u6D4B\u8BD5\u7ED3\u679C</li></ol><button class="ghost" data-command="settings" id="preview-setup">\u914D\u7F6E\u5F00\u53D1\u73AF\u5883</button></div>
+      <iframe id="dify-preview" title="Dify \u5E94\u7528\u9884\u89C8" referrerpolicy="no-referrer" hidden></iframe>
+      <div id="artifact-preview" class="artifact-preview" hidden><div id="artifact-title" class="artifact-title"></div><pre id="artifact-content"></pre></div>
+    </div>
+    <footer class="preview-footer"><span id="preview-phase">\u5C1A\u672A\u5F00\u59CB</span><span id="preview-capabilities">\u80FD\u529B\u540C\u6B65\u540E\u81EA\u52A8\u9009\u7528\u5DE5\u5177</span></footer>
+  </aside>
+</div>
+<dialog id="settings-dialog" aria-label="\u5168\u5C40\u8BBE\u7F6E"><div class="settings-drawer-header"><span>\u5168\u5C40\u8BBE\u7F6E</span><button id="close-settings" aria-label="\u5173\u95ED\u8BBE\u7F6E">\xD7</button></div>${settingsMarkup.replace('<div class="message error" id="global-message" role="alert"></div>', '<div class="message error" id="settings-message" role="alert"></div>')}</dialog>`;
+var workbenchStyles = `
+.app-brand{height:60px;padding:0 22px;letter-spacing:0}.brand-lockup{display:flex;align-items:center;gap:11px}.brand-logo{width:29px;height:29px;border-radius:9px;background:linear-gradient(145deg,#9299ff,#625acb);display:grid;place-items:center;color:#fff;font-size:19px}.app-brand b{font-size:14px;color:#e6e7eb;letter-spacing:.6px}.app-brand .beta-label{font-size:10px;border:1px solid #47435d;color:#ada9db;border-radius:4px;padding:1px 5px;margin-left:7px}.brand-description{margin-left:15px!important;font-size:12px;color:#969ba8}.global-controls{display:flex;align-items:center;gap:12px}.global-controls button{background:transparent;font-size:12px;padding:6px 10px}.connection-control{display:flex;align-items:center;gap:7px;max-width:235px;color:#a5aab5}.connection-control span:last-child{margin:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.connection-led{width:6px;height:6px;border-radius:50%;background:#717785;margin:0!important}.connection-led.ready{background:#7dd5b2}.top-model-select{font-size:12px;width:auto;max-width:215px;min-height:31px;padding:3px 8px;background:#1c1f26;border-color:#30343e}.global-settings{color:#e6e7eb!important;border-color:#414652!important}.global-controls .mobile-control{display:none}.workbench{height:calc(100dvh - 60px);display:grid;grid-template-columns:228px minmax(350px,1fr) 6px minmax(400px,var(--preview-width,46%));min-width:0}.project-sidebar{background:#121419;border-right:1px solid #292d35;display:flex;flex-direction:column;padding:24px 14px 16px;min-height:0}.sidebar-heading{display:flex;justify-content:space-between;align-items:center;padding:0 8px 18px;color:#b7bdca;font-weight:500;font-size:12px}.subtle-count{color:#747d8f}.new-project-button{font-size:12px;padding:10px 12px;text-align:left;margin-bottom:16px;border-radius:8px}.project-sidebar input{background:#171a20;border:1px solid #272c36;font-size:12px;min-height:34px;padding:7px 10px;margin-bottom:12px}.project-list{flex:1;min-height:0;overflow:auto;scrollbar-width:thin}.project-item{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:transparent;border:1px solid transparent;padding:11px 9px;margin:3px 0;border-radius:8px}.project-item.active{background:#232330;border-color:#3e3d53}.project-item:hover{background:#1d2028;filter:none}.project-glyph{width:30px;height:30px;display:grid;place-items:center;border:1px solid #363b49;border-radius:8px;font-size:15px;color:#a8aefe;flex:none}.project-item.active .project-glyph{background:#39334e;border-color:#554969}.project-info{min-width:0}.project-info strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:500;color:#d4d8e3}.project-info small{font-size:10px;color:#8c93a4}.sidebar-footer{padding-top:16px;border-top:1px solid #292d35}.sidebar-footer button{font-size:11px;width:100%;text-align:left;padding:8px}.sidebar-footer p{font-size:10px;line-height:1.8;color:#747d8f;padding:12px 8px 0}.conversation-pane{min-width:0;overflow:hidden;background:#16181e}.workbench .chat-shell{height:100%!important;max-width:none;margin:0;padding:0!important}.workbench .chat-toolbar{height:63px;padding:0 24px;border-bottom:1px solid #252832;font-size:13px;color:#c7cbd6}.workbench .chat-toolbar [data-command=settings]{display:none}.workbench .chat-scroll{padding:18px 28px 24px}.workbench .chat-welcome{gap:16px}.workbench .welcome-symbol{color:#a3a8de}.workbench .chat-welcome h1{font-size:24px;letter-spacing:-.5px}.workbench .chat-welcome p{font-size:13px;max-width:360px;line-height:1.9}.workbench .suggestions{margin-top:12px;max-width:365px}.workbench .suggestions button{font-size:12px;padding:12px 14px;border-radius:8px;background:#1b1e26}.workbench .chat-dock{padding:0 22px 18px}.workbench .chat-composer{padding:12px;border-radius:12px;background:#1c1f27;border-color:#3a3e4c;box-shadow:0 6px 20px #0002}.workbench #chat-input{font-size:14px;min-height:65px}.workbench .composer-footer{padding-top:8px;font-size:10px}.pane-divider{background:#16181e;border-right:1px solid #30343e;cursor:col-resize;touch-action:none}.pane-divider:hover,.pane-divider:focus-visible{background:#7379ed}.agent-preview{min-width:0;display:flex;flex-direction:column;background:#101216;overflow:hidden}.preview-header{height:63px;display:flex;align-items:center;justify-content:space-between;padding:11px 22px;border-bottom:1px solid #252832;gap:12px}.preview-header .eyebrow{font-size:8px;letter-spacing:1.8px;line-height:1.2;color:#7b8394}.preview-header h2{font-size:13px;font-weight:500;line-height:1.9;max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.preview-header .badge{font-size:10px;background:#252832}.preview-navigation{display:flex;justify-content:space-between;padding:10px 15px;gap:8px;background:#15181e;border-bottom:1px solid #252832}.preview-switches{display:flex;gap:4px}.preview-switches button{background:transparent;border:1px solid transparent;color:#939bad;font-size:11px;padding:5px 12px;border-radius:6px}.preview-switches button[aria-selected=true]{background:#292c38;color:#e4e6ef;border-color:#353947}.preview-utilities{display:flex;align-items:center;gap:7px}.preview-utilities button,.preview-utilities a{background:transparent;color:#9da5b6;border:0;padding:2px 6px;text-decoration:none;font-size:17px}.preview-address{display:flex;align-items:center;gap:7px;padding:8px 20px;color:#7d879a;background:#15181e;border-bottom:1px solid #252832;font-size:10px}.address-dot{width:5px;height:5px;border-radius:50%;background:#687284;flex:none}.preview-address #preview-address{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.preview-test-label{font-size:9px;color:#9a94b4;white-space:nowrap}.preview-content{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}.preview-empty{margin:auto;max-width:370px;padding:32px 24px;text-align:center;color:#8e97a9}.preview-symbol{font-size:56px;line-height:1;color:#666f89;margin-bottom:22px}.preview-empty h3{font-size:17px;color:#c4ccdb;font-weight:500;margin-bottom:12px}.preview-empty p{font-size:12px;line-height:1.9}.preview-empty ol{list-style:none;text-align:left;margin:24px auto;padding:0;max-width:265px}.preview-empty li{font-size:11px;padding:9px 0;border-bottom:1px solid #252b35}.preview-empty li span{font-size:10px;color:#687287;display:inline-block;width:28px}.preview-empty button{font-size:11px}.preview-content>iframe{border:0;width:100%;height:100%;flex:1;background:#101216}.artifact-preview{overflow:auto;flex:1;padding:20px}.artifact-title{font-size:11px;color:#a6abc6;padding-bottom:14px}.artifact-preview pre{white-space:pre;overflow:visible;max-height:none;font:12px/1.8 var(--app-editor-font-family);margin:0;color:#c5cddd}.preview-footer{padding:9px 18px;display:flex;justify-content:space-between;gap:10px;border-top:1px solid #252832;color:#858fa3;font-size:10px}.settings-drawer-header{position:sticky;top:0;background:#191c22;display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid #30343e;z-index:2;font-size:13px}.settings-drawer-header button{border:0;background:transparent;font-size:22px;padding:0 8px;color:#a6afc2}#settings-dialog{padding:0;width:min(1100px,94vw);height:88dvh;max-height:88dvh}#settings-dialog .settings-shell{height:auto;overflow:visible;padding-top:25px}#settings-dialog .settings-nav{top:65px}#settings-dialog .hero h1{font-size:23px}.server-status{font-size:11px;letter-spacing:0}.new-project-form{display:grid;gap:16px;margin-top:24px}.new-project-form .field{margin:0}.new-project-form p{color:#959aa7;font-size:12px}.new-project-form .dialog-actions{margin-top:0}.workbench .chat-welcome [hidden]{display:none!important}
+@media(max-width:1150px){.workbench{grid-template-columns:205px minmax(330px,1fr) 6px minmax(340px,42%)}.brand-description{display:none}.global-controls{gap:7px}.connection-control{max-width:160px}.workbench .chat-scroll{padding:18px}.workbench .chat-dock{padding:0 15px 14px}.preview-header{padding:11px 16px}.preview-switches button{padding:5px 8px}.workbench .chat-welcome h1{font-size:21px}}
+@media(max-width:960px){.global-controls .mobile-control{display:inline-block}.workbench{grid-template-columns:200px minmax(0,1fr)}.pane-divider,.agent-preview{display:none}.workbench.show-preview .conversation-pane{display:none}.workbench.show-preview .agent-preview{display:flex}.workbench .preview-header h2{max-width:55vw}.top-model-select{max-width:155px}.connection-control{display:none}.app-brand{padding:0 14px}.global-controls{gap:6px}.global-controls button{padding:5px 8px}}
+@media(max-width:650px){.workbench{grid-template-columns:minmax(0,1fr)}.project-sidebar{display:none;position:absolute;left:0;top:60px;bottom:0;width:240px;z-index:5;box-shadow:14px 0 30px #0008}.workbench.show-projects .project-sidebar{display:flex}.app-brand b{font-size:11px}.brand-logo{display:none}.brand-description,.top-model-select,.beta-label{display:none}.workbench .chat-toolbar{height:52px;padding:0 18px}.workbench .chat-welcome h1{font-size:23px}.preview-empty{max-width:330px}.workbench .preview-header h2{max-width:65vw}.preview-footer span:last-child{display:none}.global-controls button{font-size:11px}}
+`;
 
 // src/web/page.ts
 var theme = `
@@ -3665,9 +3798,39 @@ dialog{color:#e6e7eb;background:#191c22;border:1px solid #3a4050;border-radius:1
 `;
 function browserPage(page, locale) {
   const nonce = randomBytes3(16).toString("hex");
-  const markup = translateMarkup(page === "settings" ? settingsMarkup : taskMarkup, locale);
+  const markup = translateMarkup(page === "settings" ? settingsMarkup : workbenchMarkup, locale);
   const title = locale === "en" ? "FDE delivery toolkit" : "FDE \u4EA4\u4ED8\u5DE5\u5177";
-  return `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self';"><title>Aladdin Dify \xB7 ${title}</title><style nonce="${nonce}">${styles}${theme}</style></head><body data-page="${page}" data-locale="${locale}"><header class="app-brand"><div><b>ALADDIN DIFY</b><span>${title} \xB7 Beta</span></div><div id="server-status" class="server-status" role="status"></div></header>${markup}<dialog id="app-dialog" aria-label="${locale === "en" ? "Project and review" : "\u9879\u76EE\u4E0E\u53D8\u66F4\u786E\u8BA4"}"></dialog><div id="app-notification" class="notification" hidden role="status"></div><script nonce="${nonce}" src="/browser.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`;
+  const top = translateMarkup(
+    `<header class="app-brand"><div class="brand-lockup"><div class="brand-logo">\u2726</div><div><b>ALADDIN DIFY</b><span class="beta-label">BETA</span></div><span class="brand-description">\u7528\u5BF9\u8BDD\u4EA4\u4ED8\u667A\u80FD\u4F53</span></div><div class="global-controls"><span id="server-status" class="server-status" role="status"></span><button class="mobile-control" id="toggle-projects">\u9879\u76EE</button><button class="mobile-control" id="toggle-preview">\u9884\u89C8</button><button class="connection-control" data-command="settings"><span class="connection-led" id="connection-led"></span><span id="top-dify-address">\u8FDE\u63A5 Dify</span></button><select class="top-model-select" id="top-model-select" aria-label="\u5207\u6362\u751F\u6210\u6A21\u578B"><option value="">\u9009\u62E9\u751F\u6210\u6A21\u578B</option></select><button class="global-settings" data-command="settings" aria-label="\u6253\u5F00\u5168\u5C40\u8BBE\u7F6E">\u2699 \u8BBE\u7F6E</button></div></header>`,
+    locale
+  );
+  return `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; connect-src 'self'; frame-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self';"><title>Aladdin Dify \xB7 ${title}</title><style nonce="${nonce}">${styles}${theme}${workbenchStyles}</style></head><body data-page="${page}" data-locale="${locale}">${top}${markup}<dialog id="app-dialog" aria-label="${locale === "en" ? "Project and review" : "\u9879\u76EE\u4E0E\u53D8\u66F4\u786E\u8BA4"}"></dialog><div id="app-notification" class="notification" hidden role="status"></div><script nonce="${nonce}" src="/browser.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`;
+}
+
+// src/web/preview.ts
+import { randomBytes as randomBytes4 } from "node:crypto";
+function previewPage(view, kind, locale, error) {
+  const nonce = randomBytes4(16).toString("hex");
+  const t = (en, zh) => locale === "en" ? en : zh;
+  const escape = (s) => s.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+  );
+  let target;
+  try {
+    const value = kind === "runtime" ? view?.published && view.runtimeUrl : view?.editorUrl;
+    if (value) {
+      const candidate = new URL(value);
+      if (["http:", "https:"].includes(candidate.protocol) && !candidate.username && !candidate.password)
+        target = candidate;
+    }
+  } catch {
+  }
+  const empty = error ?? t(
+    "The test app has no published web app yet. Use Manage to inspect its draft.",
+    "\u6D4B\u8BD5\u5E94\u7528\u8FD8\u6CA1\u6709\u5DF2\u53D1\u5E03\u7684\u7F51\u9875\uFF0C\u5207\u6362\u201C\u7BA1\u7406\u201D\u67E5\u770B\u8349\u7A3F\u3002"
+  );
+  return `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; frame-src ${target ? escape(target.origin) : "'none'"}; base-uri 'none'; form-action 'none'"><style nonce="${nonce}">*{box-sizing:border-box}body{margin:0;font:12px/1.6 system-ui;color:#9ba3b3;background:#101216;height:100vh;display:flex;flex-direction:column}aside{padding:9px 14px;flex:none;border-bottom:1px solid #30343e;display:flex;gap:14px;align-items:center}aside span{flex:1}a{color:#a1a6ff;white-space:nowrap}iframe{border:0;width:100%;flex:1;background:#fff}.empty{margin:auto;padding:30px;text-align:center;max-width:480px}</style></head><body>${target ? `<aside><span>${escape(t("Blank page or sign-in blocked? Open Dify in a new window.", "\u9875\u9762\u7A7A\u767D\u6216\u65E0\u6CD5\u767B\u5F55\u65F6\uFF0C\u53EF\u4EE5\u5728\u65B0\u7A97\u53E3\u6253\u5F00 Dify\u3002"))}</span><a href="${escape(target.href)}" target="_blank" rel="noopener noreferrer">${t("Open \u2197", "\u6253\u5F00 \u2197")}</a></aside><iframe src="${escape(target.href)}" title="Dify ${kind}" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads allow-popups allow-popups-to-escape-sandbox"></iframe>` : `<p class="empty">${escape(empty)}</p>`}</body></html>`;
 }
 
 // src/web/server.ts
@@ -3680,11 +3843,34 @@ async function startWebApplication(options) {
     throw new Error("Project path must be a directory.");
   const projectStore = (directory) => new JsonStore(path6.join(dataDir, "project-settings", digest(directory) + ".json")).load();
   let projectState = await projectStore(projectPath);
+  async function rememberProject(directory) {
+    const registered = settings.get("workbench.projects", []);
+    await settings.update("workbench.projects", [
+      directory,
+      ...registered.filter((p) => p !== directory)
+    ]);
+  }
+  await rememberProject(projectPath);
+  async function projects() {
+    return Promise.all(
+      settings.get("workbench.projects", []).map(async (directory) => {
+        const s = new ProjectStore(directory, path6.join(dataDir, "projects", digest(directory)));
+        const spec = await s.spec().catch(() => void 0);
+        const missing = !(await fs6.stat(directory).catch(() => void 0))?.isDirectory();
+        return {
+          path: directory,
+          name: spec?.name ?? path6.basename(directory),
+          mode: spec?.mode,
+          missing
+        };
+      })
+    );
+  }
   let browserLanguage = "en";
   let projectChanging = false;
   let closing = false;
-  const ticket = randomBytes4(32).toString("hex");
-  const session = randomBytes4(32).toString("hex");
+  const ticket = randomBytes5(32).toString("hex");
+  const session = randomBytes5(32).toString("hex");
   const created = Date.now();
   let consumed = false;
   let origin = "";
@@ -3719,6 +3905,7 @@ async function startWebApplication(options) {
     runtimePath: options.runtimePath,
     locale: () => resolveLanguage(settings.get("config.language", "auto"), browserLanguage),
     project: () => ({ path: projectPath, name: path6.basename(projectPath), trusted: true }),
+    projects,
     emit,
     log: (text) => options.log?.(redact(text)),
     showSettings: async () => emit({ type: "navigate", path: "/settings" }),
@@ -3728,12 +3915,13 @@ async function startWebApplication(options) {
       const content = await readPreview(file);
       const next = { label: path6.basename(file), content };
       const files = preview?.files.length === 2 ? [...preview.files, next] : [next];
-      preview = { type: "preview", title: path6.basename(file), files };
+      preview = { type: "preview", title: path6.basename(file), projectPath, files };
       emit(preview);
     },
     showDiff: async (original, candidate, title) => {
       preview = {
         type: "preview",
+        projectPath,
         title,
         files: [
           { label: "Original \xB7 " + path6.basename(original), content: await readPreview(original) },
@@ -3746,7 +3934,7 @@ async function startWebApplication(options) {
       emit(preview);
     },
     confirm: async (message, label) => {
-      const id = randomBytes4(16).toString("hex");
+      const id = randomBytes5(16).toString("hex");
       return new Promise((resolve) => {
         const event = { type: "confirm", id, message, label };
         const timer = setTimeout(() => {
@@ -3833,6 +4021,27 @@ async function startWebApplication(options) {
       res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8" });
       return res.end(await fs6.readFile(path6.join(options.assetsPath, url2.pathname.slice(1))));
     }
+    if (req.method === "GET" && url2.pathname === "/preview") {
+      res.setHeader("X-Frame-Options", "SAMEORIGIN");
+      let view;
+      let error;
+      try {
+        view = await application.invoke("appPreview", {
+          projectPath: url2.searchParams.get("project") ?? projectPath
+        });
+      } catch (e) {
+        error = e instanceof Error ? e.message : "Preview unavailable.";
+      }
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+      return res.end(
+        previewPage(
+          view,
+          url2.searchParams.get("view") === "runtime" ? "runtime" : "editor",
+          host.locale(),
+          error
+        )
+      );
+    }
     if (req.method === "GET" && url2.pathname === "/api/events") {
       res.writeHead(200, {
         "Content-Type": "text/event-stream",
@@ -3880,11 +4089,28 @@ async function startWebApplication(options) {
         home: os.homedir()
       });
     }
-    if (url2.pathname === "/api/project") {
+    if (url2.pathname === "/api/project" || url2.pathname === "/api/projects/create") {
       if (application.busy() || projectChanging)
         return json(res, 409, { error: "Stop the current task before changing projects." });
       projectChanging = true;
       try {
+        if (url2.pathname === "/api/projects/create") {
+          const form = z5.object({
+            name: z5.string().trim().min(1).max(100),
+            mode: z5.enum(["workflow", "advanced-chat"])
+          }).parse(payload);
+          const managed = path6.join(dataDir, "agents");
+          await fs6.mkdir(managed, { recursive: true, mode: 448 });
+          const selected2 = await fs6.mkdtemp(path6.join(managed, "agent-"));
+          const s = new ProjectStore(selected2, path6.join(dataDir, "projects", digest(selected2)));
+          await s.initialize(form.name, form.mode);
+          await rememberProject(selected2);
+          projectPath = selected2;
+          projectState = await projectStore(selected2);
+          preview = void 0;
+          await application.refresh();
+          return json(res, 200, { path: selected2 });
+        }
         if (typeof payload.path !== "string" || payload.path.length > 4096)
           throw new Error("Enter a directory path.");
         let selected = await fs6.realpath(payload.path);
@@ -3893,9 +4119,11 @@ async function startWebApplication(options) {
             throw new Error("Enter a simple folder name.");
           selected = path6.join(selected, payload.create);
           await fs6.mkdir(selected, { mode: 448 });
+          selected = await fs6.realpath(selected);
         }
         if (!(await fs6.stat(selected)).isDirectory()) throw new Error("Select a directory.");
         const next = await projectStore(selected);
+        await rememberProject(selected);
         projectPath = selected;
         projectState = next;
         preview = void 0;

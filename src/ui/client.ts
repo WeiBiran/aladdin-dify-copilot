@@ -5,7 +5,7 @@ let locale: Locale = document.body.dataset.locale === 'en' ? 'en' : 'zh-CN';
 const t = (text: string) => translate(text, locale);
 declare function acquireAppApi(): {
   postMessage(message: unknown): void;
-  getState(): any;
+  getState(projectPath?: string): any;
   setState(state: unknown): void;
 };
 const api = acquireAppApi();
@@ -75,8 +75,22 @@ function options(id: string, items: { value: string; label: string }[], selected
   select.value = selected;
   if (select.selectedIndex < 0) select.selectedIndex = 0;
 }
+function renderModelOptions(models: string[], selected: string) {
+  options(
+    'model-id',
+    [
+      { value: '', label: '读取模型列表后选择' },
+      ...[...new Set([...models, ...(selected && selected !== '__custom' ? [selected] : [])])].map(
+        (model) => ({ value: model, label: model }),
+      ),
+      { value: '__custom', label: '自定义模型 ID…' },
+    ],
+    selected,
+  );
+  el('custom-model-field').hidden = selected !== '__custom';
+  el<HTMLInputElement>('custom-model-id').required = selected === '__custom';
+}
 function renderReadiness(s: UiState) {
-  if (page === 'task') return;
   {
     el('connection-status').textContent = t(s.connection ? '已保存' : '未配置');
     el('connection-status').classList.toggle('ready', Boolean(s.connection));
@@ -99,7 +113,7 @@ function renderReadiness(s: UiState) {
         `${locale === 'en' ? 'Last sync: ' : '上次同步：'}${new Date(s.capabilities.fetchedAt).toLocaleString()}${s.capabilities.complete ? ' · ' + t('信息完整') : ' · ' + s.capabilities.issues.join('; ')}`;
     }
     document
-      .querySelectorAll<HTMLButtonElement>('form button')
+      .querySelectorAll<HTMLButtonElement>('.settings-shell form button')
       .forEach((b) => (b.disabled = s.busy));
   }
 }
@@ -116,7 +130,7 @@ function updateProvider(defaults = false) {
         : p === 'openai'
           ? 'https://api.openai.com/v1'
           : '';
-    el<HTMLInputElement>('model-id').value = '';
+    renderModelOptions([], '');
     el<HTMLInputElement>('model-key').value = '';
   }
 }
@@ -125,7 +139,6 @@ function render(s: UiState) {
   locale = s.locale;
   if (page === 'task') {
     chatUi?.render(s);
-    return;
   }
   {
     el<HTMLSelectElement>('ui-language').value = s.language;
@@ -145,7 +158,7 @@ function render(s: UiState) {
       el<HTMLInputElement>('provider-id').value = m?.provider ?? '';
       el<HTMLInputElement>('model-url').value =
         m?.baseUrl ?? (m ? '' : 'https://api.deepseek.com/v1');
-      el<HTMLInputElement>('model-id').value = m?.model ?? '';
+      renderModelOptions(s.generationModels, m?.model ?? '');
       updateProvider();
     }
     if (!initialized || !dirtySettings.has('limits-form')) {
@@ -199,7 +212,7 @@ document
         ),
     ),
   );
-if (page === 'settings') {
+if (el('model-form')) {
   el('ui-language').addEventListener(
     'change',
     () =>
@@ -214,6 +227,10 @@ if (page === 'settings') {
     .querySelectorAll<HTMLFormElement>('form')
     .forEach((f) => f.addEventListener('input', () => dirtySettings.add(f.id)));
   el('model-provider').addEventListener('change', () => updateProvider(true));
+  el('model-id').addEventListener('change', () => {
+    el('custom-model-field').hidden = value('model-id') !== '__custom';
+    el<HTMLInputElement>('custom-model-id').required = value('model-id') === '__custom';
+  });
   el<HTMLFormElement>('connection-form').addEventListener('submit', (e) => {
     e.preventDefault();
     void action(
@@ -272,7 +289,7 @@ if (page === 'settings') {
   const modelPayload = () => ({
     provider: value('model-provider') === 'other' ? value('provider-id') : value('model-provider'),
     baseUrl: value('model-provider') === 'other' ? undefined : value('model-url'),
-    model: value('model-id'),
+    model: value('model-id') === '__custom' ? value('custom-model-id') : value('model-id'),
     apiKey: value('model-key'),
   });
   el<HTMLFormElement>('model-form').addEventListener('submit', (e) => {
@@ -299,15 +316,10 @@ if (page === 'settings') {
           const payload = modelPayload();
           const { model, ...discovery } = payload;
           const r = await request('discoverModels', discovery);
-          el('generation-models').replaceChildren();
-          for (const id of r.models) {
-            const o = document.createElement('option');
-            o.value = id;
-            el('generation-models').append(o);
-          }
-          if (r.models.length && !value('model-id'))
-            el<HTMLInputElement>('model-id').value = r.models[0];
-          message('model-message', `已读取 ${r.models.length} 个模型，可在生成模型输入框中选择。`);
+          renderModelOptions(
+            r.models,
+            r.models.includes(payload.model) ? payload.model : (r.models[0] ?? ''),
+          );
           return r;
         },
         '',
@@ -315,7 +327,7 @@ if (page === 'settings') {
         if (r)
           message(
             'model-message',
-            `已读取 ${(r as any).models.length} 个模型，可在生成模型输入框中选择。`,
+            `已读取 ${(r as any).models.length} 个模型，可在下拉菜单中选择。`,
           );
       }),
   );

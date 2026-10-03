@@ -67,6 +67,9 @@ export interface UiState {
     hasPassword: boolean;
   };
   model?: { provider: string; baseUrl?: string; model: string; hasKey: boolean };
+  generationModels: string[];
+  projects?: { path: string; name: string; mode?: AppMode; missing?: boolean }[];
+  remoteApp?: { id: string; editorUrl: string; published: boolean };
   limits: z.infer<typeof limitForm>;
   runtimeModel?: { provider: string; model: string };
   runtimeModels: ModelDescriptor[];
@@ -87,7 +90,7 @@ export interface UiState {
     acceptance: string;
     allowSideEffects: boolean;
   };
-  run?: { phase: string; round: number; error?: string; passed?: boolean };
+  run?: { id: string; phase: string; round: number; error?: string; passed?: boolean };
   busy: boolean;
   taskRunning: boolean;
 }
@@ -103,6 +106,7 @@ export const UI_COMMANDS = new Set([
   'selectWorkspace',
   'saveModel',
   'discoverModels',
+  'appPreview',
   'saveLimits',
   'saveRuntime',
   'loadApps',

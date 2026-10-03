@@ -4,7 +4,11 @@
 
 **未必然的 Dify FDE 交付工具。** 从业务需求出发，让 OpenCode Agent 构建 Workflow 或 Chatflow，再按固定测试基线验证候选版本。用 npm 在本机启动，在浏览器里使用。
 
-**Beta · 0.5.0-beta.2。** 遇到问题欢迎[提 Issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose)，也可以 Fork 后提交 PR。真实业务验收仍未完成，使用前请看[验证状态](docs/compatibility.zh-CN.md)。
+**Beta · 0.6.0-beta.1。** 遇到问题欢迎[提 Issue](https://github.com/WeiBiran/aladdin-dify-copilot/issues/new/choose)，也可以 Fork 后提交 PR。真实业务验收仍未完成，使用前请看[验证状态](docs/compatibility.zh-CN.md)。
+
+![智能体工作台](docs/images/workbench.png)
+
+截图展示尚未配置 Dify 和模型的项目，不代表已经完成业务运行。
 
 ## 一条命令启动
 
@@ -19,12 +23,12 @@ npx --yes github:WeiBiran/aladdin-dify-copilot
 指定项目和固定版本：
 
 ```sh
-npx --yes github:WeiBiran/aladdin-dify-copilot#v0.5.0-beta.2 ./customer-project
+npx --yes github:WeiBiran/aladdin-dify-copilot#v0.6.0-beta.1 ./customer-project
 ```
 
-命令中的目录需要已经存在，也可以在网页的目录选择器里创建并选择项目。`--port 0` 自动选择空闲端口，`--no-open` 只打印链接，`--help` 查看全部参数。默认端口为 `8787`，被占用时请换一个端口。
+命令中的目录需要已经存在。网页左侧的“创建智能体”会直接创建项目，无需选择目录；“打开本地项目”可以接入已有目录。`--port 0` 自动选择空闲端口，`--no-open` 只打印链接，`--help` 查看全部参数。默认端口为 `8787`，被占用时请换一个端口。
 
-本版通过 GitHub 分发，**没有发布到 npm 仓库**，因此暂时不能使用 `npx aladdin-dify`。仓库附带编译好的启动文件，用户安装时不用自己构建。[Beta Release](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.5.0-beta.2) 提供 npm 安装包、源码压缩包和 SHA-256 校验文件。
+本版通过 GitHub 分发，**没有发布到 npm 仓库**，因此暂时不能使用 `npx aladdin-dify`。仓库附带编译好的启动文件，用户安装时不用自己构建。[Beta Release](https://github.com/WeiBiran/aladdin-dify-copilot/releases/tag/v0.6.0-beta.1) 提供 npm 安装包、源码压缩包和 SHA-256 校验文件。
 
 ## 我们要解决什么问题
 
@@ -36,10 +40,10 @@ Aladdin Dify 会读取当前账号在 Dify 工作空间里可见的工具、模�
 
 ## 在网页里完成配置
 
-点击 Chat 页面上的齿轮进入设置。界面默认跟随浏览器语言，也可以选择英文或简体中文。
+点击工作台右上角的“设置”，在弹出的面板中配置，当前对话仍保留。界面默认跟随浏览器语言，也可以选择英文或简体中文。
 
 1. **Dify 连接：**填写根地址或 Console API 地址、实际受支持的版本、邮箱和密码，点击“连接并同步”。账号有多个工作空间时选择一个。应用的 Service API Key 不能替代控制台登录。
-2. **生成模型：**选择 DeepSeek、OpenAI、OpenAI 兼容接口或其他 OpenCode 供应商，填写需要的 API 地址、Key 和真实模型 ID。供应商提供模型目录时，可以点击读取。
+2. **生成模型：**选择 DeepSeek、OpenAI、OpenAI 兼容接口或其他 OpenCode 供应商，填写需要的 API 地址和 Key，读取模型列表后，从下拉菜单选择。没有模型目录的供应商可以选择“自定义模型 ID”。右上角的模型下拉菜单用于切换当前供应商已保存的模型。
 3. **工作流运行模型：**选择 Dify 已配置的模型，也可以让 Agent 自行选择。它与上面的生成模型分别配置。
 4. **执行限制：**设置修复轮次、超时、生成模型和 Dify 的独立 Token 预算。默认最多修复五轮，限时 30 分钟，两类预算各 100,000 Token。
 
@@ -49,13 +53,15 @@ Aladdin Dify 会读取当前账号在 Dify 工作空间里可见的工具、模�
 
 ## 构建、测试和交付
 
-主页面是 Chat：中间显示对话和工具调用，底部输入需求，旁边选择应用类型、模型和任务选项。
+主页面分为三栏：左侧是智能体项目，中间通过对话构建，右侧显示当前项目的 Dify 测试应用。拖动分隔线可调整预览宽度；窄屏通过“项目”和“预览”按钮切换。
 
-1. 选择 **Workflow** 或 **Chatflow**，通过目录按钮切换业务项目。
+1. 点击左侧“创建智能体”，填写名称并选择 **Workflow** 或 **Chatflow**。每个项目保存独立的需求、对话、文件和测试应用引用；从左侧切换项目时，未发送的输入也分别保留。
 2. 点击 **＋／任务选项**，填写应用名称、验收要求，或选择一个已有应用来改进。
 3. 明确允许业务工具、HTTP 请求和代码节点执行的测试范围。Dify 测试副本不能隔离外部业务系统中的写操作。
 4. 输入需求并按 **Enter** 发送，**Shift+Enter** 换行。可以查看回复、真实工具调用、校验、测试与修复过程，点击停止按钮取消任务。
-5. 查看生成的 DSL 和测试报告。新建测试应用通过检查后自动发布；更新已有原应用前，需要查看差异和报告并确认目标，远端冲突会阻止覆盖。
+5. 通过右侧的“管理 / 运行 / DSL / 测试”查看应用和结果。“管理”打开已导入的 Dify 草稿，“运行”打开已发布的应用网页，DSL 和测试报告直接显示在对话旁。新建测试应用通过检查后自动发布；更新已有原应用前，需要查看差异和报告并确认目标，远端冲突会阻止覆盖。
+
+预览使用 Dify 自己的网页和浏览器登录状态。Dify 或浏览器可能阻止嵌入、第三方登录，此时可点击“新窗口打开”。工具不会把控制台 Cookie 转交给 OpenCode，也不会移除 Dify 的安全响应头。运行页显示最近发布的版本，管理页显示草稿；尚未创建应用时，右侧提示下一步操作。
 
 示例需求：
 
@@ -77,7 +83,7 @@ customer-project/
   tests.json        # 固定测试基线
 ```
 
-设置、聊天记录、能力缓存、报告、原始运行记录、备份和部署记录保存在 `~/.aladdin-dify`，与项目分开。`--data-dir` 可以指定其他位置，同时使用独立的凭据命名空间。报告可能含业务输出，分享前需要脱敏。公开界面状态、DSL 和普通日志不包含凭据。
+从左侧新建的项目保存在 `~/.aladdin-dify/agents`，接入的本地项目保留在所选目录。项目列表在下次启动时仍可使用。设置、聊天记录、能力缓存、报告、原始运行记录、备份和部署记录保存在 `~/.aladdin-dify`，与项目分开。`--data-dir` 可以指定其他位置，同时使用独立的凭据命名空间。报告可能含业务输出，分享前需要脱敏。公开界面状态、DSL 和普通日志不包含凭据。
 
 本地网页先用短时、一次性的启动链接建立 HttpOnly／SameSite 会话，服务校验 Host 和写请求的来源，只提供规定的操作，不开放任意终端命令。请保管终端打印的链接。服务只监听本机回环地址，不对局域网开放。
 
@@ -85,7 +91,7 @@ customer-project/
 
 ## 已经验证了什么
 
-本地检查覆盖了真实 HTTP 服务、浏览器 Chat／设置页面、中英文切换、目录选择、macOS 原生钥匙串存取、安装后的 npm 包启动，以及真实 OpenCode／SDK／MCP 通信。模型响应使用确定性夹具，没有调用真实 DeepSeek 账号。
+本地检查覆盖了真实 HTTP 服务、浏览器 Chat／设置页面、中英文切换、项目创建和切换、独立输入草稿、模型下拉菜单、预览包装页、macOS 原生钥匙串存取、安装后的 npm 包启动，以及真实 OpenCode／SDK／MCP 通信。模型响应使用确定性夹具，没有调用真实 DeepSeek 账号。
 
 此前在真实 Dify 1.14.2 实例中，通过浏览器验证过工具发现和最小 Workflow／Chatflow 的导入、运行、发布。**新的浏览器应用尚未使用已配置凭据完成真实 Dify 业务闭环。** Dify 1.17.1 仅有源码契约和模拟接口测试。每种节点仍需要在目标版本导入并运行的证据。详见[兼容矩阵](docs/compatibility.zh-CN.md)、[业务验收](docs/acceptance.md)和当前提交的 [CI 结果](https://github.com/WeiBiran/aladdin-dify-copilot/actions)。
 

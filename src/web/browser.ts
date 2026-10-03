@@ -1,5 +1,5 @@
 // Local authenticated browser transport. Credentials are never kept in browser storage.
-export {};
+import { setupWorkbench } from './workbench';
 const en = document.body.dataset.locale === 'en';
 const text = (english: string, chinese: string) => (en ? english : chinese);
 const dialog = document.getElementById('app-dialog') as HTMLDialogElement;
@@ -8,6 +8,7 @@ let preview: { title: string; files: { label: string; content: string }[] } | un
 let confirmation: { id: string; message: string; label: string } | undefined;
 let currentFolder = '';
 let parentFolder = '';
+const workbench = setupWorkbench(post);
 function dispatch(value: unknown) {
   window.dispatchEvent(new MessageEvent('message', { data: value }));
 }
@@ -29,16 +30,25 @@ async function post(route: string, data: unknown) {
       .then((value) => dispatch({ type: 'response', id: message.id, result: value.result }))
       .catch((error) => dispatch({ type: 'response', id: message.id, error: error.message }));
   },
-  getState() {
+  getState(projectPath?: string) {
     try {
+      if (projectPath) {
+        const drafts = JSON.parse(sessionStorage.getItem('aladdin.drafts') ?? '{}');
+        if (drafts[projectPath]) return drafts[projectPath];
+      }
       return JSON.parse(sessionStorage.getItem('aladdin.draft') ?? 'null');
     } catch {
       return null;
     }
   },
-  setState(state: unknown) {
+  setState(state: any) {
     try {
       sessionStorage.setItem('aladdin.draft', JSON.stringify(state));
+      if (state.workspacePath) {
+        const drafts = JSON.parse(sessionStorage.getItem('aladdin.drafts') ?? '{}');
+        drafts[state.workspacePath] = state;
+        sessionStorage.setItem('aladdin.drafts', JSON.stringify(drafts));
+      }
     } catch {
       /* Quota or browser policy: draft stays in memory. */
     }
@@ -224,13 +234,17 @@ events.onerror = () => {
 events.onmessage = (message) => {
   const event = JSON.parse(message.data);
   if (event.type === 'navigate') {
-    window.location.assign(event.path);
+    if (document.body.dataset.page === 'task') {
+      if (event.path === '/settings') workbench.openSettings();
+      else workbench.closeSettings();
+    } else window.location.assign(event.path);
     return;
   }
   if (event.type === 'state' && event.state.locale !== document.body.dataset.locale) {
     window.location.reload();
     return;
   }
+  if (event.type === 'state') workbench.render(event.state);
   if (event.type === 'folder') {
     void browse(event.path).catch((e) => {
       openDialog(text('Choose a project folder', '选择项目目录'));
@@ -241,6 +255,7 @@ events.onmessage = (message) => {
     return;
   }
   if (event.type === 'preview') {
+    if (!confirmation && workbench.artifact(event)) return;
     preview = event;
     showReview();
     return;

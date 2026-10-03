@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
-import { settingsMarkup, taskMarkup, styles } from '../ui/markup';
+import { settingsMarkup, styles } from '../ui/markup';
 import { translateMarkup, type Locale } from '../core/i18n';
+import { workbenchMarkup, workbenchStyles } from './workbench-view';
 
 const theme = `
 :root{--app-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--app-foreground:#e6e7eb;--app-editor-background:#15171b;--app-sideBar-background:#15171b;--app-descriptionForeground:#959aa7;--app-widget-border:#30343e;--app-button-background:#7379ed;--app-button-foreground:#fff;--app-button-secondaryBackground:#252832;--app-button-secondaryForeground:#dde0e9;--app-input-background:#1c1f26;--app-input-foreground:#e6e7eb;--app-input-border:#30343e;--app-input-placeholderForeground:#767c8a;--app-focusBorder:#858afd;--app-textBlockQuote-background:#22252e;--app-testing-iconPassed:#7dd5b2;--app-errorForeground:#ff9caa;--app-textLink-foreground:#a1a6ff;--app-editor-font-family:ui-monospace,SFMono-Regular,monospace;color-scheme:dark}
@@ -10,7 +11,11 @@ dialog{color:#e6e7eb;background:#191c22;border:1px solid #3a4050;border-radius:1
 `;
 export function browserPage(page: 'task' | 'settings', locale: Locale) {
   const nonce = randomBytes(16).toString('hex');
-  const markup = translateMarkup(page === 'settings' ? settingsMarkup : taskMarkup, locale);
+  const markup = translateMarkup(page === 'settings' ? settingsMarkup : workbenchMarkup, locale);
   const title = locale === 'en' ? 'FDE delivery toolkit' : 'FDE 交付工具';
-  return `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self';"><title>Aladdin Dify · ${title}</title><style nonce="${nonce}">${styles}${theme}</style></head><body data-page="${page}" data-locale="${locale}"><header class="app-brand"><div><b>ALADDIN DIFY</b><span>${title} · Beta</span></div><div id="server-status" class="server-status" role="status"></div></header>${markup}<dialog id="app-dialog" aria-label="${locale === 'en' ? 'Project and review' : '项目与变更确认'}"></dialog><div id="app-notification" class="notification" hidden role="status"></div><script nonce="${nonce}" src="/browser.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`;
+  const top = translateMarkup(
+    `<header class="app-brand"><div class="brand-lockup"><div class="brand-logo">✦</div><div><b>ALADDIN DIFY</b><span class="beta-label">BETA</span></div><span class="brand-description">用对话交付智能体</span></div><div class="global-controls"><span id="server-status" class="server-status" role="status"></span><button class="mobile-control" id="toggle-projects">项目</button><button class="mobile-control" id="toggle-preview">预览</button><button class="connection-control" data-command="settings"><span class="connection-led" id="connection-led"></span><span id="top-dify-address">连接 Dify</span></button><select class="top-model-select" id="top-model-select" aria-label="切换生成模型"><option value="">选择生成模型</option></select><button class="global-settings" data-command="settings" aria-label="打开全局设置">⚙ 设置</button></div></header>`,
+    locale,
+  );
+  return `<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}'; connect-src 'self'; frame-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'self';"><title>Aladdin Dify · ${title}</title><style nonce="${nonce}">${styles}${theme}${workbenchStyles}</style></head><body data-page="${page}" data-locale="${locale}">${top}${markup}<dialog id="app-dialog" aria-label="${locale === 'en' ? 'Project and review' : '项目与变更确认'}"></dialog><div id="app-notification" class="notification" hidden role="status"></div><script nonce="${nonce}" src="/browser.js"></script><script nonce="${nonce}" src="/webview.js"></script></body></html>`;
 }

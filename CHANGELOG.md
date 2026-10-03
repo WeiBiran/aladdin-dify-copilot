@@ -2,6 +2,14 @@
 
 [English](CHANGELOG.md) | [简体中文](CHANGELOG.zh-CN.md)
 
+## 0.6.0-beta.1 — Agent workbench
+
+- Add persistent agent projects, direct Workflow/Chatflow creation, sidebar switching, and separate unsent drafts.
+- Move connection and model settings to a dialog opened from the upper-right corner. Use provider-backed model dropdowns and an explicit custom-ID option.
+- Add a resizable Dify preview with Manage, Run, DSL, and Tests tabs. Preview the current test app, keep published/runtime and draft views distinct, and preserve external navigation when embedding is unavailable.
+- Scope remote frames through an authenticated wrapper, retain browser-owned Dify login, and reject stale project previews. Do not proxy credentials or strip remote security headers.
+- Add project, model-catalog, link-discovery, framing, and localization regression coverage. Live business and production embedding acceptance remain pending.
+
 ## 0.5.0-beta.2 — Streaming fix
 
 - Keep the event stream open when a large DSL preview or chat snapshot temporarily fills the HTTP buffer. Disconnect only when a slow client accumulates over 4 MB of buffered data.

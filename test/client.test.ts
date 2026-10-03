@@ -7,6 +7,38 @@ import { minimalDsl } from '../src/core/rules';
 import { ApiError, digest } from '../src/core/util';
 
 describe('Dify source-derived adapter contracts (mock HTTP)', () => {
+  it('derives draft management and published run links from the actual app site without returning authentication fields', async () => {
+    const json = vi.fn(async (route: string) =>
+      route.endsWith('/summary')
+        ? { id: 'workspace' }
+        : {
+            enable_site: true,
+            workflow: { id: 'published' },
+            site: { code: 'fixture-code', app_base_url: 'https://apps.example.test/team' },
+            api_key: 'private-api-key',
+            cookie: 'private-cookie',
+          },
+    );
+    const client = new DifyClient({
+      baseUrl: 'https://dify.example.test',
+      profile: { workspaceId: 'workspace', version: '1.14.2' },
+      json,
+    } as unknown as DifyTransport);
+    const chat = await client.preview('test-app', 'advanced-chat');
+    expect(chat).toEqual({
+      editorUrl: 'https://dify.example.test/app/test-app/workflow',
+      runtimeUrl: 'https://apps.example.test/team/chatbot/fixture-code',
+      published: true,
+    });
+    expect(JSON.stringify(chat)).not.toContain('private');
+    expect((await client.preview('test-app', 'workflow')).runtimeUrl).toBe(
+      'https://apps.example.test/team/workflow/fixture-code',
+    );
+    json.mockImplementation(
+      async () => ({ id: 'workspace', enable_site: false, site: { code: 'disabled' } }) as any,
+    );
+    expect((await client.preview('test-app', 'workflow')).runtimeUrl).toBeUndefined();
+  });
   it('excludes inline HTTP secrets from exported editable DSL and marks manual merge', async () => {
     const doc = parse(minimalDsl('workflow'));
     doc.workflow.graph.nodes[0].data = {

@@ -6,6 +6,54 @@ export function resolveLanguage(setting: LanguageSetting, browserLanguage: strin
 // Keys are the existing Chinese source messages. User prompts, model replies,
 // tool definitions, saved project names and credentials never pass through this table.
 export const englishMessages: Record<string, string> = {
+  用对话构建智能体: 'Build an agent through chat',
+  '当前项目还没有对应的 Dify 测试应用。': 'This project has no Dify test app yet.',
+  '预览所属项目已切换，请刷新。': 'The preview project changed. Refresh to continue.',
+  智能体项目: 'Agent projects',
+  '＋ 创建智能体': '+ Create agent',
+  '搜索项目…': 'Search projects…',
+  搜索项目: 'Search projects',
+  项目列表: 'Project list',
+  '↗ 打开本地项目': '↗ Open local project',
+  '每个项目保存独立的对话、工作流和测试。':
+    'Each project keeps its own conversation, workflow, and tests.',
+  构建智能体: 'Build an agent',
+  调整预览宽度: 'Resize preview',
+  智能体预览: 'Agent preview',
+  预览内容: 'Preview content',
+  管理: 'Manage',
+  运行: 'Run',
+  测试: 'Tests',
+  刷新预览: 'Refresh preview',
+  在新窗口打开Dify: 'Open Dify in a new window',
+  '在新窗口打开 Dify': 'Open Dify in a new window',
+  等待创建测试应用: 'Waiting for a test app',
+  测试应用: 'Test app',
+  'Dify 应用预览': 'Dify app preview',
+  '边构建，边体验': 'Build and try it side by side',
+  '描述智能体要完成的任务，生成后会在这里打开 Dify 应用。':
+    'Describe what your agent should do. Its Dify app will open here after import.',
+  '连接 Dify 和生成模型': 'Connect Dify and a generation model',
+  通过对话构建与优化: 'Build and improve through chat',
+  '预览、运行并检查测试结果': 'Preview, run, and inspect test results',
+  配置开发环境: 'Configure environment',
+  尚未开始: 'Not started',
+  能力同步后自动选用工具: 'Tools are discovered from Dify',
+  全局设置: 'Global settings',
+  关闭设置: 'Close settings',
+  用对话交付智能体: 'Deliver agents through chat',
+  项目: 'Projects',
+  预览: 'Preview',
+  切换生成模型: 'Switch generation model',
+  打开全局设置: 'Open global settings',
+  '⚙ 设置': '⚙ Settings',
+  读取模型列表后选择: 'Fetch models to choose',
+  '自定义模型 ID…': 'Custom model ID…',
+  '填入 API Key 后读取模型列表，再从下拉菜单选择。':
+    'Enter an API key, fetch the model list, then choose from the dropdown.',
+  '模型 ID': 'Model ID',
+  填写供应商的实际模型ID: 'Enter an actual provider model ID',
+  '填写供应商的实际模型 ID': 'Enter an actual provider model ID',
   设置: 'Settings',
   跟随浏览器: 'Follow browser',
   '密码与会话保存在系统安全凭据存储中。':
@@ -245,8 +293,8 @@ export function translate(text: string, locale: Locale): string {
   );
   if (round)
     return `${englishMessages[round[1]!] ?? round[1]} · Round ${round[2]}${round[3]?.replace('生成 ', 'Generation ').replace(' / Dify ', ' / Dify ') ?? ''}`;
-  const models = text.match(/^已读取 (\d+) 个模型，可在生成模型输入框中选择。$/);
-  if (models) return `Found ${models[1]} models. Select one in the generation model field.`;
+  const models = text.match(/^已读取 (\d+) 个模型，可在(?:生成模型输入框|下拉菜单)中选择。$/);
+  if (models) return `Found ${models[1]} models. Select one from the dropdown.`;
   const selected = text.match(/^已选应用 · (.+)$/);
   if (selected) return `Selected application · ${selected[1]}`;
   const tools = text.match(/^(\d+) 个工具( · 待处理)?$/);

@@ -1,4 +1,4 @@
-import { request } from 'node:http';
+import { request, createServer } from 'node:http';
 import { describe, it, expect } from 'vitest';
 import { mkdtemp, mkdir, rm, readFile, writeFile, realpath, symlink } from 'node:fs/promises';
 import path from 'node:path';
@@ -59,6 +59,110 @@ async function fixture() {
   };
 }
 describe('local browser application', () => {
+  it('creates independent agent projects and returns to each project without losing its specification', async () => {
+    const f = await fixture();
+    try {
+      const create = async (name: string, mode: string) => {
+        const response = await f.post('/api/projects/create', { name, mode });
+        expect(response.status).toBe(200);
+        return (await response.json()).path as string;
+      };
+      const first = await create('Support', 'advanced-chat');
+      const readState = async () => (await (await f.command('getState')).json()).result;
+      const a = await readState();
+      expect(a.workspace.name).toBe('Support');
+      expect(a.task.mode).toBe('advanced-chat');
+      expect(a.remoteApp).toBeUndefined();
+      expect(JSON.parse(await readFile(path.join(first, 'dify.project.json'), 'utf8')).name).toBe(
+        'Support',
+      );
+      const second = await create('Reporting', 'workflow');
+      const b = await readState();
+      expect(b.chat.id).not.toBe(a.chat.id);
+      expect(b.task.mode).toBe('workflow');
+      expect(b.projects).toHaveLength(3);
+      expect((await f.post('/api/project', { path: first })).status).toBe(200);
+      const restored = await readState();
+      expect(restored.workspace.path).toBe(first);
+      expect(restored.chat.id).toBe(a.chat.id);
+      expect(restored.projects).toHaveLength(3);
+      const registry = JSON.parse(
+        await readFile(path.join(f.root, 'private', 'settings.json'), 'utf8'),
+      );
+      expect(registry['workbench.projects']).toContain(second);
+      expect(
+        (await f.post('/api/projects/create', { name: 'Unsupported', mode: 'agent-chat' })).status,
+      ).toBe(400);
+      const stale = await f.command('appPreview', { projectPath: second });
+      expect(stale.status).toBe(400);
+      const frame = await fetch(f.app.origin + '/preview?project=' + encodeURIComponent(second), {
+        headers: { cookie: f.cookie },
+      });
+      expect(frame.headers.get('x-frame-options')).toBe('SAMEORIGIN');
+      expect(await frame.text()).not.toContain('<iframe');
+    } finally {
+      await f.cleanup();
+    }
+  });
+  it('offers only models discovered for the configured provider and endpoint (mock model HTTP)', async () => {
+    const f = await fixture();
+    const modelServer = createServer((req, res) => {
+      expect(req.headers.authorization).toBe('Bearer fixture-model-key');
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ data: [{ id: 'fixture-chat' }, { id: 'fixture-reasoner' }] }));
+    });
+    await new Promise<void>((resolve) => modelServer.listen(0, '127.0.0.1', resolve));
+    const baseUrl = 'http://127.0.0.1:' + (modelServer.address() as { port: number }).port + '/v1';
+    try {
+      expect(
+        (
+          await f.command('saveModel', {
+            provider: 'custom',
+            baseUrl,
+            model: 'fixture-chat',
+            apiKey: 'fixture-model-key',
+          })
+        ).status,
+      ).toBe(200);
+      expect(
+        (await f.command('discoverModels', { provider: 'custom', baseUrl, apiKey: '' })).status,
+      ).toBe(200);
+      let state = (await (await f.command('getState')).json()).result;
+      expect(state.generationModels).toEqual(['fixture-chat', 'fixture-reasoner']);
+      expect(JSON.stringify(state)).not.toContain('fixture-model-key');
+      expect(
+        (
+          await f.command('saveModel', {
+            provider: 'custom',
+            baseUrl,
+            model: 'fixture-reasoner',
+            apiKey: '',
+          })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await f.command('saveModel', {
+            provider: 'deepseek',
+            baseUrl: 'https://api.deepseek.com/v1',
+            model: 'other',
+            apiKey: '',
+          })
+        ).status,
+      ).toBe(400);
+      await f.command('saveModel', {
+        provider: 'other',
+        model: 'other-model',
+        apiKey: 'second-fixture-key',
+      });
+      state = (await (await f.command('getState')).json()).result;
+      expect(state.generationModels).toEqual(['other-model']);
+    } finally {
+      modelServer.closeAllConnections();
+      await new Promise<void>((resolve) => modelServer.close(() => resolve()));
+      await f.cleanup();
+    }
+  });
   it('previews DSL and private reports while refusing symlinks outside the project', async () => {
     const f = await fixture();
     const controller = new AbortController();

@@ -140,6 +140,7 @@ export function createApplication(host: ApplicationHost) {
     }
   }
   async function getState(): Promise<UiState> {
+    const contextPath = host.project()?.path;
     const p = profile(),
       m = host.globalState.get<ModelProfile>('generationModel'),
       snap = await savedSnapshot(),
@@ -151,13 +152,37 @@ export function createApplication(host: ApplicationHost) {
       connectionId: string;
       model: { provider: string; model: string };
     }>('runtimePreference');
-    return {
+    const state: UiState = {
       chat: (await journal()).snapshot(),
       locale: host.locale(),
       language: host.config.get<LanguageSetting>('language', 'auto'),
       workspace: folder
-        ? { name: folder.name, path: folder.path, trusted: host.project()?.trusted ?? true }
+        ? {
+            name: spec?.name ?? folder.name,
+            path: folder.path,
+            trusted: host.project()?.trusted ?? true,
+          }
         : undefined,
+      projects: await host.projects?.(),
+      generationModels: m
+        ? [
+            ...new Set([
+              m.model,
+              ...host.globalState.get<string[]>(
+                'models.' + digest(m.provider + '|' + (m.baseUrl ?? '')),
+                [],
+              )!,
+            ]),
+          ]
+        : [],
+      remoteApp:
+        spec?.testAppId && spec.connectionId === p?.id
+          ? {
+              id: spec.testAppId,
+              editorUrl: `${p!.baseUrl}/app/${encodeURIComponent(spec.testAppId)}/workflow`,
+              published: record?.phase === 'complete',
+            }
+          : undefined,
       connection: p
         ? {
             baseUrl: p.baseUrl,
@@ -206,6 +231,7 @@ export function createApplication(host: ApplicationHost) {
         : undefined,
       run: record
         ? {
+            id: record.id,
             phase: record.phase,
             round: record.round,
             error: record.error ? redact(record.error) : undefined,
@@ -215,6 +241,8 @@ export function createApplication(host: ApplicationHost) {
       busy: Boolean(active || starting || changingSettings),
       taskRunning: Boolean(active || starting),
     };
+    if (contextPath !== host.project()?.path) return getState();
+    return state;
   }
   async function emitState() {
     const state = await getState();
@@ -374,7 +402,26 @@ export function createApplication(host: ApplicationHost) {
       .map((m) => m.id)
       .filter((m): m is string => typeof m === 'string' && m.length <= 200)
       .slice(0, 1000);
+    await host.globalState.update('models.' + digest(f.provider + '|' + (f.baseUrl ?? '')), [
+      ...new Set(models),
+    ]);
+    await emitState();
     return { models };
+  };
+  handlers.appPreview = async (payload) => {
+    const projectPath = host.project()?.path;
+    const requestedPath = object(payload).projectPath;
+    if (requestedPath !== undefined && requestedPath !== projectPath)
+      throw new Error('预览所属项目已切换，请刷新。');
+    const spec = await (await store()).spec();
+    const p = profile();
+    if (!spec.testAppId || !p || spec.connectionId !== p.id)
+      throw new Error('当前项目还没有对应的 Dify 测试应用。');
+    const c = await client();
+    const view = await c.preview(spec.testAppId, spec.mode);
+    if (projectPath !== host.project()?.path || p.id !== profile()?.id)
+      throw new Error('预览所属项目已切换，请刷新。');
+    return view;
   };
   handlers.saveRuntime = async (payload) => {
     ensureIdle();

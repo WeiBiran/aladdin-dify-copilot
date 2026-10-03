@@ -2,7 +2,7 @@ import type { UiState, TaskForm } from './contracts';
 import type { ChatSnapshot, ChatEntry } from '../core/chat';
 import { translate, type Locale } from '../core/i18n';
 interface WebviewState {
-  getState(): any;
+  getState(projectPath?: string): any;
   setState(value: unknown): void;
 }
 export function setupChat(
@@ -213,9 +213,8 @@ export function setupChat(
       if (!node.parentNode) transcript.append(node);
     }
     const first = chat.messages.find((m) => m.kind === 'user');
-    el('chat-title').textContent = first
-      ? first.text.slice(0, 35).replace(/\n/g, ' ')
-      : t('新对话');
+    el('chat-title').textContent =
+      state?.task?.name ?? (first ? first.text.slice(0, 35).replace(/\n/g, ' ') : t('新对话'));
     if (atBottom || changed) scroll.scrollTop = scroll.scrollHeight;
     if (state) readiness();
   }
@@ -297,11 +296,13 @@ export function setupChat(
   }
   function render(s: UiState) {
     const changed = workspacePath !== s.workspace?.path;
+    if (initialized && changed) draft();
     state = s;
     locale = s.locale;
     workspacePath = s.workspace?.path;
     if (!initialized || changed) {
-      const saved = api.getState();
+      if (s.chat) renderChat(s.chat);
+      const saved = api.getState(workspacePath);
       const matches = saved?.workspacePath === workspacePath && saved?.chatId === s.chat?.id;
       const t = matches ? saved.task : s.task;
       el<HTMLInputElement>('task-name').value = t?.name ?? s.workspace?.name ?? '';
